@@ -200,9 +200,9 @@ class PosView {
             <div class="row g-0">
                 <!-- Menu Section -->
                 <div class="col-md-8 p-4">
-                    <div class="d-flex justify-content-between mb-4">
-                        <h4>Menu</h4>
-                        <div style="width: 300px;">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                        <h4 class="mb-0">Menu</h4>
+                        <div class="w-100" style="max-width: 300px;">
                             <input type="text" class="form-control form-control-lg" placeholder="Search menu..." id="menu-search">
                         </div>
                     </div>
