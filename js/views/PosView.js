@@ -485,7 +485,7 @@ class PosView {
                                 <div class="mb-3 row text-end align-items-center">
                                     <label class="col-sm-6 col-form-label fw-bold">Opening Cash:</label>
                                     <div class="col-sm-6">
-                                        <input type="number" class="form-control text-end" id="opening-cash" value="0" required>
+                                        <input type="number" class="form-control text-end" id="opening-cash" value="2000" required>
                                     </div>
                                 </div>
                                 <div class="mb-3 row text-end align-items-center">
