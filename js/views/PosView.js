@@ -63,7 +63,7 @@ class PosView {
             <div class="row justify-content-center mt-5">
                 <div class="col-md-10 text-center">
                     <h2 class="mb-5 text-muted">Welcome to ${outletName}</h2>
-                    <div class="row gap-4 justify-content-center mt-5">
+                    <div class="row g-4 justify-content-center mt-5">
                         <div class="col-md-4">
                             <button class="btn btn-primary w-100 btn-large shadow-sm" id="btn-take-order">
                                 <i class="bi bi-cart-plus"></i>
@@ -76,7 +76,7 @@ class PosView {
                                 Sales Reports
                             </button>
                         </div>
-                        <div class="col-md-4 mt-4">
+                        <div class="col-md-4">
                             <button class="btn btn-warning text-dark w-100 btn-large shadow-sm" id="btn-day-closing">
                                 <i class="bi bi-cash-stack"></i>
                                 Day Closing
