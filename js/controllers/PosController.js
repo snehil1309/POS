@@ -205,8 +205,12 @@ class PosController {
             const o = this.model.currentOrder;
             const itemsText = o.items.map(i => `${i.item.name.padEnd(15).substring(0, 15)} ${String(i.qty).padStart(3)} ₹${String(i.item.price).padStart(5)}`).join('<br>');
 
+            const isQuickies = this.model.currentOutlet.name.toLowerCase() === 'quickies';
+            const logoHtml = isQuickies ? `<img src="logo.jpeg" alt="Quickies Logo" class="mb-2" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"><br>` : '';
+
             const content = `
                 <div class="text-center mb-3">
+                    ${logoHtml}
                     <strong>${this.model.currentOutlet.name}</strong><br>
                     ${o.type} ${o.source ? ' - ' + o.source : ''}<br>
                     ${o.customerName ? 'Cust: ' + o.customerName + '<br>' : ''}

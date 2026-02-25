@@ -26,12 +26,16 @@ class PosView {
                 '<span class="badge bg-success mt-2">Active</span>' :
                 '<span class="badge bg-secondary mt-2">Coming Soon</span>';
 
+            const iconOrLogo = outlet.id === 'quickies'
+                ? '<img src="logo.jpeg" alt="Quickies Logo" class="mb-2 rounded shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">'
+                : '<i class="bi bi-building fs-1 mb-2 d-block"></i>';
+
             html += `
                 <div class="col-md-5">
-                    <button class="btn ${outlet.active ? 'btn-outline-primary' : 'btn-outline-secondary'} w-100 btn-large ${disabledClass}" 
+                    <button class="btn ${outlet.active ? 'btn-outline-primary' : 'btn-outline-secondary'} w-100 btn-large ${disabledClass} py-4 d-flex flex-column align-items-center" 
                             data-outlet-id="${outlet.id}" ${!outlet.active ? 'disabled' : ''}>
-                        <i class="bi bi-building"></i>
-                        ${outlet.name}
+                        ${iconOrLogo}
+                        <span class="fs-4 fw-bold">${outlet.name}</span>
                         ${statusBadge}
                     </button>
                 </div>
@@ -49,7 +53,11 @@ class PosView {
 
     renderHome(outletName) {
         this.mainNav.classList.remove('d-none');
-        this.navOutletName.innerText = outletName;
+        if (outletName.toLowerCase() === 'quickies') {
+            this.navOutletName.innerHTML = `<img src="logo.jpeg" alt="Quickies Logo" class="me-2 rounded" style="height: 20px; object-fit: cover;"> ${outletName}`;
+        } else {
+            this.navOutletName.innerText = outletName;
+        }
 
         this.appContainer.innerHTML = `
             <div class="row justify-content-center mt-5">
