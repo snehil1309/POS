@@ -6,48 +6,58 @@ class PosModel {
         ];
 
         this.menu = [
-            // Value Combos
-            { id: 'vc1', name: 'Snack & Sip Combo', price: 129, category: 'Value Combos' },
-            { id: 'vc2', name: 'Cheesy Hunger Combo', price: 199, category: 'Value Combos' },
-            { id: 'vc3', name: 'Sweet Treat Combo', price: 249, category: 'Value Combos' },
-            { id: 'vc4', name: 'Mini Party Combo', price: 299, category: 'Value Combos' },
-            // Desserts
-            { id: 'd1', name: 'Molten Bliss Brownie', price: 200, category: 'Desserts' },
+            // Ice Cream
+            { id: 'ic1', name: 'Vanilla Ice Cream', price: 40, category: 'Ice Cream' },
+            { id: 'ic2', name: 'Chocolate Chips Ice Cream', price: 60, category: 'Ice Cream' },
+            { id: 'ic3', name: 'Cookies and Cream Ice Cream', price: 65, category: 'Ice Cream' },
+            { id: 'ic4', name: 'Raj Bhog Ice Cream', price: 70, category: 'Ice Cream' },
+            { id: 'ic5', name: 'Mango Ice Cream', price: 65, category: 'Ice Cream' },
+
             // Waffles
-            { id: 'w1', name: 'Cocoa Dream Waffle', price: 150, category: 'Waffles' },
-            { id: 'w2', name: 'Cookies & Cream Crunch', price: 160, category: 'Waffles' },
-            { id: 'w3', name: 'KitKat Choco Crave', price: 160, category: 'Waffles' },
+            { id: 'w1', name: 'Milk Chocolate Waffle', price: 150, category: 'Waffles' },
+            { id: 'w2', name: 'Cookies and Cream Waffle', price: 160, category: 'Waffles' },
+            { id: 'w3', name: 'Kitkat Waffle', price: 160, category: 'Waffles' },
+
             // Milkshakes
-            { id: 'm1', name: 'Velvet Vanilla Shake', price: 80, category: 'Milkshakes' },
-            { id: 'm2', name: 'Midnight Chocolate Shake', price: 90, category: 'Milkshakes' },
-            { id: 'm3', name: 'Strawberry Swirl Shake', price: 100, category: 'Milkshakes' },
-            { id: 'm4', name: 'Mango Magic Shake', price: 130, category: 'Milkshakes' },
-            { id: 'm5', name: 'Royal Rajwadi Shake', price: 140, category: 'Milkshakes' },
+            { id: 'm1', name: 'Vanilla Milkshake', price: 80, category: 'Milkshakes' },
+            { id: 'm2', name: 'Chocolate Milkshake', price: 90, category: 'Milkshakes' },
+            { id: 'm3', name: 'Strawberry Milkshake', price: 100, category: 'Milkshakes' },
+            { id: 'm4', name: 'Mango Milkshake', price: 130, category: 'Milkshakes' },
+            { id: 'm5', name: 'Rajwadi Milkshake', price: 140, category: 'Milkshakes' },
+
+            // Desserts
+            { id: 'd1', name: 'Hot Chocolate Brownie', price: 200, category: 'Desserts' },
+
+            // Fries
+            { id: 'f1', name: 'Simply Salted Fries', price: 50, category: 'Fries' },
+            { id: 'f2', name: 'Peri Peri Fries', price: 60, category: 'Fries' },
+            { id: 'f3', name: 'Pepper Crunch Fries', price: 70, category: 'Fries' },
+            { id: 'f4', name: 'Cheese Mayo Loaded Fries', price: 80, category: 'Fries' },
+            { id: 'f5', name: 'Honey Chilly Lemon Fries', price: 90, category: 'Fries' },
+
+            // Mini Pizzas
+            { id: 'p1', name: 'Mini Margirita Pizza', price: 90, category: 'Mini Pizzas' },
+            { id: 'p2', name: 'Garden Fresh Pizza', price: 100, category: 'Mini Pizzas' },
+            { id: 'p3', name: 'Veggie Clasic Pizza', price: 110, category: 'Mini Pizzas' },
+
             // Beverages
             { id: 'b1', name: 'Zesty Fresh Lime', price: 40, category: 'Beverages' },
             { id: 'b2', name: 'Sparkling Lime Soda', price: 50, category: 'Beverages' },
-            { id: 'b3', name: 'Sunrise Orange Juice', price: 60, category: 'Beverages' },
-            { id: 'b4', name: 'Orange Pop Soda', price: 70, category: 'Beverages' },
+            { id: 'b3', name: 'Orange Pop Soda', price: 70, category: 'Beverages' },
+            { id: 'b4', name: 'Mint Mojito', price: 70, category: 'Beverages' },
+
             // Sandwiches & Toasts
             { id: 's1', name: 'Golden Butter Toast', price: 50, category: 'Sandwiches & Toasts' },
-            { id: 's2', name: 'Classic Comfort Sandwich', price: 80, category: 'Sandwiches & Toasts' },
-            { id: 's3', name: 'Grill Melt Veggie', price: 120, category: 'Sandwiches & Toasts' },
-            { id: 's4', name: 'Cheesy Veggie Grill', price: 140, category: 'Sandwiches & Toasts' },
-            { id: 's5', name: 'Triple Layer Cheese Club', price: 160, category: 'Sandwiches & Toasts' },
-            // Mini Pizzas
-            { id: 'p1', name: 'Mini Margherita Delight', price: 90, category: 'Mini Pizzas' },
-            { id: 'p2', name: 'Garden Fresh Toppings', price: 100, category: 'Mini Pizzas' },
-            { id: 'p3', name: 'Veggie Classic Bite', price: 110, category: 'Mini Pizzas' },
-            // Fries
-            { id: 'f1', name: 'Simply Salted Fries', price: 50, category: 'Fries' },
-            { id: 'f2', name: 'Peri Peri Fire Fries', price: 60, category: 'Fries' },
-            { id: 'f3', name: 'Peppery Crunch Fries', price: 70, category: 'Fries' },
-            { id: 'f4', name: 'Cheese Mayo Loaded Fries', price: 80, category: 'Fries' },
-            { id: 'f5', name: 'Honey Chilli Lemon Fries', price: 90, category: 'Fries' },
+            { id: 's2', name: 'Clasic Comfort Sandwich', price: 80, category: 'Sandwiches & Toasts' },
+            { id: 's3', name: 'Grill Melt Veggies', price: 120, category: 'Sandwiches & Toasts' },
+            { id: 's4', name: 'Cheesy Veggies Grilled Sandwich', price: 140, category: 'Sandwiches & Toasts' },
+            { id: 's5', name: 'Cheese Club Sandwich', price: 160, category: 'Sandwiches & Toasts' },
+
             // Potato Wedges
-            { id: 'pw1', name: 'Peri Peri Wedges', price: 80, category: 'Potato Wedges' },
-            { id: 'pw2', name: 'Pepper Salt Wedges', price: 90, category: 'Potato Wedges' },
-            { id: 'pw3', name: 'Honey Chilli Lemon Wedges', price: 100, category: 'Potato Wedges' }
+            { id: 'pw1', name: 'Simplly Salted Wedges', price: 70, category: 'Potato Wedges' },
+            { id: 'pw2', name: 'Peri Peri Wedges', price: 80, category: 'Potato Wedges' },
+            { id: 'pw3', name: 'Cheese Mayo Wedges', price: 100, category: 'Potato Wedges' },
+            { id: 'pw4', name: 'Honey Chilly Lemon Wedges', price: 120, category: 'Potato Wedges' }
         ];
 
         this.currentOutlet = null;
