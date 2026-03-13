@@ -64,19 +64,25 @@ class PosView {
                 <div class="col-md-10 text-center">
                     <h2 class="mb-5 text-muted">Welcome to ${outletName}</h2>
                     <div class="row g-4 justify-content-center mt-5">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <button class="btn btn-primary w-100 btn-large shadow-sm" id="btn-take-order">
                                 <i class="bi bi-cart-plus"></i>
                                 Take Order
                             </button>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100 btn-large shadow-sm" id="btn-saved-orders">
+                                <i class="bi bi-bookmark-fill"></i>
+                                Saved Orders
+                            </button>
+                        </div>
+                        <div class="col-md-3">
                             <button class="btn btn-info text-white w-100 btn-large shadow-sm" id="btn-sales-reports">
                                 <i class="bi bi-graph-up"></i>
                                 Sales Reports
                             </button>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <button class="btn btn-warning text-dark w-100 btn-large shadow-sm" id="btn-day-closing">
                                 <i class="bi bi-cash-stack"></i>
                                 Day Closing
@@ -346,10 +352,11 @@ class PosView {
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between mt-5">
-                                <button class="btn btn-secondary btn-lg px-4" id="btn-back-menu">Go Back</button>
-                                <button class="btn btn-info btn-lg px-4 text-white" id="btn-preview-bill"><i class="bi bi-eye"></i> Print Preview</button>
-                                <button class="btn btn-dark btn-lg px-5 fw-bold" id="btn-place-order" disabled>Place Order (Auto Print)</button>
+                            <div class="d-flex justify-content-between mt-5 gap-2">
+                                <button class="btn btn-secondary btn-lg flex-fill" id="btn-back-menu">Go Back</button>
+                                <button class="btn btn-warning btn-lg flex-fill" id="btn-save-order">Save Order</button>
+                                <button class="btn btn-info btn-lg flex-fill text-white" id="btn-preview-bill"><i class="bi bi-eye"></i> Preview</button>
+                                <button class="btn btn-dark btn-lg flex-fill fw-bold" id="btn-place-order" disabled>Place & Print</button>
                             </div>
                         </div>
                     </div>
@@ -392,6 +399,60 @@ class PosView {
                             <button type="button" class="btn btn-success btn-lg w-100 d-none" id="btn-done-order">Done (New Order)</button>
                         </div>
                     </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderSavedOrders(savedOrders) {
+        let ordersHtml = savedOrders.map(order => `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 saved-order-card" data-order-id="${order.id}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">${order.customerName || 'Walk-in Customer'}</h5>
+                            <span class="badge bg-primary">${order.type}</span>
+                        </div>
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-clock"></i> ${new Date(order.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}<br>
+                            <i class="bi bi-telephone"></i> ${order.customerPhone || 'N/A'}<br>
+                            <i class="bi bi-hash"></i> ${order.id}
+                        </p>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fs-5 fw-bold text-success">₹${order.total}</span>
+                            <div class="gap-2 d-flex">
+                                <button class="btn btn-sm btn-outline-danger delete-saved-btn" data-order-id="${order.id}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary load-saved-btn" data-order-id="${order.id}">
+                                    Load Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        if (savedOrders.length === 0) {
+            ordersHtml = `
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-bookmark-x display-1 text-muted"></i>
+                    <h3 class="mt-3 text-muted">No Saved Orders</h3>
+                    <p>Orders saved during billing will appear here.</p>
+                </div>
+            `;
+        }
+
+        this.appContainer.innerHTML = `
+            <div class="container mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-bookmark-fill text-success"></i> Saved Orders</h2>
+                    <button class="btn btn-secondary" id="btn-back-home"><i class="bi bi-arrow-left"></i> Home</button>
+                </div>
+                <div class="row">
+                    ${ordersHtml}
                 </div>
             </div>
         `;

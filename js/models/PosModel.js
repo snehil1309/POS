@@ -52,6 +52,7 @@ class PosModel {
 
         this.currentOutlet = null;
         this.currentOrder = {
+            id: null,
             type: null, // Dine-In, Take Away
             source: null, // Swiggy, Zomato
             customerName: '',
@@ -125,6 +126,7 @@ class PosModel {
 
     clearCart() {
         this.currentOrder = {
+            id: null,
             type: null,
             source: null,
             customerName: '',
@@ -140,7 +142,7 @@ class PosModel {
         }
 
         const orderRecord = {
-            id: 'ORD' + Date.now(),
+            id: this.currentOrder.id || ('ORD' + Date.now()),
             date: new Date().toISOString(),
             outletId: this.currentOutlet.id,
             type: this.currentOrder.type,
@@ -156,8 +158,73 @@ class PosModel {
         orders.push(orderRecord);
         localStorage.setItem('pos_orders', JSON.stringify(orders));
 
+        // If it was a saved order, remove it
+        if (this.currentOrder.id) {
+            this.deleteSavedOrder(this.currentOrder.id);
+        }
+
         this.clearCart();
         return orderRecord;
+    }
+
+    saveCurrentOrder() {
+        if (!this.currentOutlet || this.currentOrder.items.length === 0) {
+            return false;
+        }
+
+        const savedOrder = {
+            id: this.currentOrder.id || ('SAV' + Date.now()),
+            date: new Date().toISOString(),
+            outletId: this.currentOutlet.id,
+            type: this.currentOrder.type,
+            source: this.currentOrder.source,
+            customerName: this.currentOrder.customerName,
+            customerPhone: this.currentOrder.customerPhone,
+            items: [...this.currentOrder.items],
+            total: this.getCartTotal()
+        };
+
+        const savedOrders = this.getSavedOrders();
+        const index = savedOrders.findIndex(o => o.id === savedOrder.id);
+        if (index !== -1) {
+            savedOrders[index] = savedOrder;
+        } else {
+            savedOrders.push(savedOrder);
+        }
+        
+        localStorage.setItem('pos_saved_orders', JSON.stringify(savedOrders));
+        this.clearCart();
+        return true;
+    }
+
+    getSavedOrders() {
+        const allSaved = JSON.parse(localStorage.getItem('pos_saved_orders') || '[]');
+        if (!this.currentOutlet) return allSaved;
+        return allSaved.filter(o => o.outletId === this.currentOutlet.id);
+    }
+
+    loadSavedOrder(orderId) {
+        const savedOrders = this.getSavedOrders();
+        const order = savedOrders.find(o => o.id === orderId);
+        if (order) {
+            this.currentOrder = {
+                id: order.id,
+                type: order.type,
+                source: order.source,
+                customerName: order.customerName,
+                customerPhone: order.customerPhone,
+                items: [...order.items],
+                paymentMode: null
+            };
+            return true;
+        }
+        return false;
+    }
+
+    deleteSavedOrder(orderId) {
+        let savedOrders = JSON.parse(localStorage.getItem('pos_saved_orders') || '[]');
+        savedOrders = savedOrders.filter(o => o.id !== orderId);
+        localStorage.setItem('pos_saved_orders', JSON.stringify(savedOrders));
     }
 
     getOrders() {

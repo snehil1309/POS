@@ -14,9 +14,10 @@ class PosController {
         });
 
         document.getElementById('btn-reset-data').addEventListener('click', () => {
-            if (confirm("Are you sure you want to delete all sales and order data? This action cannot be undone.")) {
+            if (confirm("Are you sure you want to delete all sales, order data, and saved orders? This action cannot be undone.")) {
                 localStorage.removeItem('pos_orders');
                 localStorage.removeItem('pos_closings');
+                localStorage.removeItem('pos_saved_orders');
                 sessionStorage.removeItem('pos_active_outlet');
                 this.model.clearCart();
                 this.showOutletSelection();
@@ -67,6 +68,11 @@ class PosController {
         this.view.renderSalesReports(stats);
     }
 
+    showSavedOrders() {
+        const savedOrders = this.model.getSavedOrders();
+        this.view.renderSavedOrders(savedOrders);
+    }
+
     showDayClosing() {
         const stats = this.model.getDailyStats();
         this.view.renderDayClosing(stats);
@@ -87,6 +93,10 @@ class PosController {
         // Home Buttons
         if (e.target.closest('#btn-take-order')) {
             this.showOrderType();
+            return;
+        }
+        if (e.target.closest('#btn-saved-orders')) {
+            this.showSavedOrders();
             return;
         }
         if (e.target.closest('#btn-sales-reports')) {
@@ -190,6 +200,37 @@ class PosController {
             return;
         }
 
+        // Save Order (from billing)
+        if (e.target.closest('#btn-save-order')) {
+            if (this.model.saveCurrentOrder()) {
+                alert("Order Saved Successfully!");
+                this.showHome();
+            } else {
+                alert("Failed to save order.");
+            }
+            return;
+        }
+
+        // Saved Order Actions
+        const loadBtn = e.target.closest('.load-saved-btn');
+        if (loadBtn) {
+            const id = loadBtn.dataset.orderId;
+            if (this.model.loadSavedOrder(id)) {
+                this.showMenu();
+            }
+            return;
+        }
+
+        const deleteBtn = e.target.closest('.delete-saved-btn');
+        if (deleteBtn) {
+            if (confirm("Are you sure you want to delete this saved order?")) {
+                const id = deleteBtn.dataset.orderId;
+                this.model.deleteSavedOrder(id);
+                this.showSavedOrders();
+            }
+            return;
+        }
+
         // Payment Mode Selection
         const payBtn = e.target.closest('.payment-btn');
         if (payBtn) {
@@ -239,30 +280,24 @@ class PosController {
                 document.getElementById('print-order-id').innerText = 'Order ID: ' + record.id;
                 modal.show();
 
-                // Simulate Auto-Printing Sequence
+                // Reset Status UI
                 const updateStatus = (id, icon, text, textClass) => {
                     const el = document.getElementById(id);
                     el.innerHTML = `<i class="bi ${icon} ${textClass} me-2"></i> ${text}`;
                     el.className = `w-100 p-2 rounded bg-light border border-${textClass.replace('text-', '')}`;
                 };
 
-                // Reset Status UI
-                updateStatus('status-bill', 'bi-hourglass-split', 'Printing Bill...', 'text-warning');
-                updateStatus('status-kot', 'bi-hourglass-split', 'Printing KOT...', 'text-warning');
-                updateStatus('status-drawer', 'bi-hourglass-split', 'Opening Cash Drawer...', 'text-warning');
-                document.getElementById('btn-done-order').classList.add('d-none');
-                document.getElementById('print-status-text').innerText = 'Auto-Processing...';
-
-                // Sequence triggers
-                setTimeout(() => updateStatus('status-bill', 'bi-check-circle-fill', 'Bill Printed', 'text-success'), 800);
-                setTimeout(() => updateStatus('status-kot', 'bi-check-circle-fill', 'KOT Printed', 'text-success'), 1600);
+                // Consolidated Printing Sequence
                 setTimeout(() => {
+                    this.triggerFullOrderPrint(record);
+                    updateStatus('status-kot', 'bi-check-circle-fill', 'KOT Printed', 'text-success');
+                    updateStatus('status-bill', 'bi-check-circle-fill', 'Bill Printed', 'text-success');
                     updateStatus('status-drawer', 'bi-check-circle-fill', 'Cash Drawer Opened', 'text-success');
+                    
                     document.getElementById('print-status-text').innerText = 'Complete!';
                     document.getElementById('print-status-text').classList.add('text-success');
                     document.getElementById('btn-done-order').classList.remove('d-none');
-                }, 2400);
-
+                }, 500);
             }
             return;
         }
@@ -293,7 +328,100 @@ class PosController {
                 alert("Day Closed Successfully. System Locked for current Day.");
                 this.showHome();
             }
+            return;
         }
+    }
+
+    triggerFullOrderPrint(order) {
+        const printContainer = document.getElementById('print-section');
+        const isQuickies = this.model.currentOutlet.name.toLowerCase() === 'quickies';
+
+        // 1. KOT Section HTML
+        const kotHtml = `
+            <div class="print-header">
+                <div class="print-title">KITCHEN ORDER TICKET (KOT)</div>
+                <div>${order.id}</div>
+                <div>${new Date(order.date).toLocaleString()}</div>
+                <div class="print-bold">Type: ${order.type} ${order.source ? '(' + order.source + ')' : ''}</div>
+            </div>
+            <div class="print-divider"></div>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80%" class="print-bold">ITEM</th>
+                        <th style="width: 20%" class="print-text-right print-bold">QTY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${order.items.map(i => `
+                        <tr>
+                            <td class="print-bold">${i.item.name}</td>
+                            <td class="print-text-right print-bold">${i.qty}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div class="print-divider"></div>
+            <div class="print-text-center">*** KOT END ***</div>
+        `;
+
+        // 2. Bill Section HTML
+        const billHtml = `
+            <div>
+                <div class="print-header">
+                    ${isQuickies ? `<img src="logo.jpeg" style="width: 40px; height: 40px; margin-bottom: 5px;"><br>` : ''}
+                    <div class="print-title">${this.model.currentOutlet.name.toUpperCase()}</div>
+                    <div>Order ID: ${order.id}</div>
+                    <div>Date: ${new Date(order.date).toLocaleString()}</div>
+                    <div class="print-bold">Type: ${order.type} ${order.source ? '(' + order.source + ')' : ''}</div>
+                    ${order.customerName ? `<div>Cust: ${order.customerName}</div>` : ''}
+                </div>
+                <div class="print-divider"></div>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50%" class="print-bold">ITEM</th>
+                            <th style="width: 15%" class="print-text-center print-bold">QTY</th>
+                            <th style="width: 35%" class="print-text-right print-bold">PRICE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${order.items.map(i => `
+                            <tr>
+                                <td class="print-bold">${i.item.name}</td>
+                                <td class="print-text-center print-bold">${i.qty}</td>
+                                <td class="print-text-right print-bold">₹${i.total}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div class="print-divider"></div>
+                <div class="print-text-right print-bold" style="font-size: 1.2rem;">TOTAL: ₹${order.total}</div>
+                <div class="print-text-right print-bold">Paid via: ${order.paymentMode}</div>
+                <div class="print-divider"></div>
+                <div class="print-header" style="margin-top: 5mm">
+                    <strong class="print-bold">THANK YOU! VISIT AGAIN</strong><br>
+                    <small class="print-bold">Pallav: +91-9106804063</small>
+                </div>
+                <!-- Drawer Kick Character -->
+                <div style="font-size: 1px; color: white;">\u0007</div>
+            </div>
+        `;
+
+        // Command 1: Print KOT
+        printContainer.innerHTML = kotHtml;
+        window.print();
+
+        // Command 2: Print Bill (with slight delay to separate printer buffers)
+        setTimeout(() => {
+            printContainer.innerHTML = billHtml;
+            window.print();
+            
+            // Clear after both jobs are sent
+            setTimeout(() => {
+                printContainer.innerHTML = '';
+            }, 1000);
+        }, 500);
     }
 
     handleAppInput(e) {
