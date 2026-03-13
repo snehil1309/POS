@@ -107,6 +107,20 @@ body {
     color: white;
 }
 
+.saved-order-card {
+    transition: all 0.3s ease;
+    border-radius: 16px;
+}
+
+.saved-order-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.saved-order-card .card-body {
+    padding: 1.5rem;
+}
+
 /* Responsive Styles */
 @media (max-width: 991.98px) {
     .btn-large {
@@ -179,5 +193,91 @@ body {
 
     #nav-outlet-name {
         display: none !important;
+    }
+}
+
+#print-section {
+    display: none;
+}
+
+/* Print Styles for Thermal Receipts */
+@media print {
+    * {
+        color: #000 !important;
+        text-shadow: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    body {
+        background-color: white !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    img {
+        filter: grayscale(100%) contrast(500%) !important;
+    }
+
+
+    #main-nav, #app-container, .modal {
+        display: none !important;
+    }
+
+    #print-section {
+        display: block !important;
+        width: 80mm; /* Standard Thermal Paper Width */
+        margin: 0;
+        padding: 2mm;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        line-height: 1.2;
+    }
+
+    .print-header {
+        text-align: center;
+        margin-bottom: 5mm;
+    }
+
+    .print-title {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 2mm;
+    }
+
+    .print-divider {
+        border-top: 1.5px solid black !important;
+        margin: 2mm 0;
+    }
+
+    .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: black !important;
+    }
+
+    .print-table th, .print-table td {
+        text-align: left;
+        padding: 1mm 0;
+    }
+
+    .print-text-right {
+        text-align: right !important;
+    }
+
+    .print-text-center {
+        text-align: center !important;
+    }
+
+    .print-bold {
+        font-weight: bold;
+    }
+
+    .print-bold {
+        font-weight: 900 !important;
+    }
+
+    .page-break {
+        page-break-after: always;
     }
 }
