@@ -78,6 +78,21 @@ class PosController {
         this.view.renderDayClosing(stats);
     }
 
+    showPlacedOrders() {
+        const orders = this.model.getOrders();
+        // Sort by date descending (latest first)
+        orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+        this.view.renderPlacedOrders(orders);
+    }
+
+    showOrderDetails(orderId) {
+        const orders = this.model.getOrders();
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            this.view.renderOrderDetails(order);
+        }
+    }
+
     handleAppClick(e) {
         // Outlet Selection
         const outletBtn = e.target.closest('[data-outlet-id]');
@@ -107,6 +122,10 @@ class PosController {
             this.showDayClosing();
             return;
         }
+        if (e.target.closest('#btn-placed-orders') || e.target.closest('#btn-placed-orders-inner')) {
+            this.showPlacedOrders();
+            return;
+        }
 
         // Back Buttons
         if (e.target.closest('#btn-back-home')) {
@@ -128,6 +147,10 @@ class PosController {
         }
         if (e.target.closest('#btn-back-menu')) {
             this.showMenu();
+            return;
+        }
+        if (e.target.closest('#btn-back-placed-orders')) {
+            this.showPlacedOrders();
             return;
         }
 
@@ -220,13 +243,31 @@ class PosController {
             }
             return;
         }
-
         const deleteBtn = e.target.closest('.delete-saved-btn');
         if (deleteBtn) {
             if (confirm("Are you sure you want to delete this saved order?")) {
                 const id = deleteBtn.dataset.orderId;
                 this.model.deleteSavedOrder(id);
                 this.showSavedOrders();
+            }
+            return;
+        }
+
+        // Placed Order Actions
+        const viewPlacedBtn = e.target.closest('.view-placed-btn');
+        if (viewPlacedBtn) {
+            const id = viewPlacedBtn.dataset.orderId;
+            this.showOrderDetails(id);
+            return;
+        }
+
+        if (e.target.closest('#btn-reprint-order')) {
+            const id = e.target.closest('#btn-reprint-order').dataset.orderId;
+            const orders = this.model.getOrders();
+            const order = orders.find(o => o.id === id);
+            if (order) {
+                this.triggerFullOrderPrint(order);
+                alert("Re-print job sent to printer.");
             }
             return;
         }

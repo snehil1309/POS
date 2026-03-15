@@ -107,17 +107,17 @@ body {
     color: white;
 }
 
-.saved-order-card {
+.saved-order-card, .placed-order-card {
     transition: all 0.3s ease;
     border-radius: 16px;
 }
 
-.saved-order-card:hover {
+.saved-order-card:hover, .placed-order-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
 }
 
-.saved-order-card .card-body {
+.saved-order-card .card-body, .placed-order-card .card-body {
     padding: 1.5rem;
 }
 

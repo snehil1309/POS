@@ -64,25 +64,31 @@ class PosView {
                 <div class="col-md-10 text-center">
                     <h2 class="mb-5 text-muted">Welcome to ${outletName}</h2>
                     <div class="row g-4 justify-content-center mt-5">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <button class="btn btn-primary w-100 btn-large shadow-sm" id="btn-take-order">
                                 <i class="bi bi-cart-plus"></i>
                                 Take Order
                             </button>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
+                            <button class="btn btn-secondary w-100 btn-large shadow-sm" id="btn-placed-orders">
+                                <i class="bi bi-clock-history"></i>
+                                Placed Orders
+                            </button>
+                        </div>
+                        <div class="col-md-4">
                             <button class="btn btn-success w-100 btn-large shadow-sm" id="btn-saved-orders">
                                 <i class="bi bi-bookmark-fill"></i>
                                 Saved Orders
                             </button>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <button class="btn btn-info text-white w-100 btn-large shadow-sm" id="btn-sales-reports">
                                 <i class="bi bi-graph-up"></i>
                                 Sales Reports
                             </button>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <button class="btn btn-warning text-dark w-100 btn-large shadow-sm" id="btn-day-closing">
                                 <i class="bi bi-cash-stack"></i>
                                 Day Closing
@@ -100,16 +106,22 @@ class PosView {
                 <div class="col-md-8 text-center">
                     <h2 class="mb-4">Select Order Type</h2>
                     <div class="row g-4 justify-content-center">
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <button class="btn btn-outline-primary w-100 btn-large order-type-btn" data-type="Dine-In">
                                 <i class="bi bi-cup-hot"></i>
                                 Dine-In
                             </button>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <button class="btn btn-outline-success w-100 btn-large order-type-btn" data-type="Take Away">
                                 <i class="bi bi-bag"></i>
                                 Take Away
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-secondary w-100 btn-large" id="btn-placed-orders-inner">
+                                <i class="bi bi-clock-history"></i>
+                                Placed Order
                             </button>
                         </div>
                     </div>
@@ -617,5 +629,127 @@ class PosView {
         document.getElementById('actual-cash').addEventListener('input', calcFields);
 
         calcFields(); // initial calculation
+    }
+
+    renderPlacedOrders(orders) {
+        let ordersHtml = orders.map(order => `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 placed-order-card" data-order-id="${order.id}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">${order.customerName || 'Walk-in Customer'}</h5>
+                            <span class="badge bg-secondary">${order.type}</span>
+                        </div>
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-clock"></i> ${new Date(order.date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}<br>
+                            <i class="bi bi-telephone"></i> ${order.customerPhone || 'N/A'}<br>
+                            <i class="bi bi-hash"></i> ${order.id}
+                        </p>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fs-5 fw-bold text-success">₹${order.total}</span>
+                            <button class="btn btn-sm btn-outline-primary view-placed-btn" data-order-id="${order.id}">
+                                <i class="bi bi-eye"></i> View Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        if (orders.length === 0) {
+            ordersHtml = `
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-card-checklist display-1 text-muted"></i>
+                    <h3 class="mt-3 text-muted">No Placed Orders</h3>
+                    <p>Orders that have been completed and printed will appear here.</p>
+                </div>
+            `;
+        }
+
+        this.appContainer.innerHTML = `
+            <div class="container mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-clock-history text-secondary"></i> Placed Orders</h2>
+                    <button class="btn btn-secondary" id="btn-back-home"><i class="bi bi-arrow-left"></i> Home</button>
+                </div>
+                <div class="row">
+                    ${ordersHtml}
+                </div>
+            </div>
+        `;
+    }
+
+    renderOrderDetails(order) {
+        let itemsHtml = order.items.map(cartItem => `
+            <tr>
+                <td>${cartItem.item.name}</td>
+                <td class="text-center">${cartItem.qty}</td>
+                <td class="text-end">₹${cartItem.item.price}</td>
+                <td class="text-end fw-bold">₹${cartItem.total}</td>
+            </tr>
+        `).join('');
+
+        this.appContainer.innerHTML = `
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                            <button class="btn btn-sm btn-outline-secondary" id="btn-back-placed-orders"><i class="bi bi-arrow-left"></i> Back</button>
+                            <h3 class="mb-0">Order Details</h3>
+                            <div style="width: 60px;"></div> <!-- Spacer -->
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row mb-4">
+                                <div class="col-sm-6">
+                                    <p class="mb-1 text-muted">Order ID</p>
+                                    <p class="fw-bold">${order.id}</p>
+                                    <p class="mb-1 text-muted">Date & Time</p>
+                                    <p class="fw-bold">${new Date(order.date).toLocaleString()}</p>
+                                </div>
+                                <div class="col-sm-6 text-sm-end">
+                                    <p class="mb-1 text-muted">Customer</p>
+                                    <p class="fw-bold">${order.customerName || 'Walk-in'}</p>
+                                    <p class="mb-1 text-muted">Type</p>
+                                    <p class="fw-bold"><span class="badge bg-secondary">${order.type} ${order.source ? `(${order.source})` : ''}</span></p>
+                                </div>
+                            </div>
+
+                            <table class="table table-borderless table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Item</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-end">Price</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${itemsHtml}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="border-top">
+                                        <td colspan="3" class="text-end fs-4">Grand Total:</td>
+                                        <td class="text-end fs-4 fw-bold text-success">₹${order.total}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            
+                            <hr class="my-4">
+                            
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <p class="mb-1 text-muted">Payment Mode</p>
+                                    <p class="fw-bold fs-5">${order.paymentMode}</p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <button class="btn btn-dark" id="btn-reprint-order" data-order-id="${order.id}"><i class="bi bi-printer"></i> Re-print Bill</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 }
