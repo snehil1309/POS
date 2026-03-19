@@ -25,17 +25,17 @@ class PosView {
             const statusBadge = outlet.active ?
                 '<span class="badge bg-success mt-2">Active</span>' :
                 '<span class="badge bg-secondary mt-2">Coming Soon</span>';
-
-            const iconOrLogo = outlet.id === 'quickies'
-                ? '<img src="logo.jpeg" alt="Quickies Logo" class="mb-2 rounded shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">'
+ 
+            const iconOrLogo = outlet.logo
+                ? `<img src="${outlet.logo}" alt="${outlet.name} Logo" class="mb-2 rounded shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">`
                 : '<i class="bi bi-building fs-1 mb-2 d-block"></i>';
-
+ 
             html += `
                 <div class="col-md-5">
-                    <button class="btn ${outlet.active ? 'btn-outline-primary' : 'btn-outline-secondary'} w-100 btn-large ${disabledClass} py-4 d-flex flex-column align-items-center" 
+                    <button class="btn ${outlet.active ? 'btn-outline-primary' : 'btn-outline-secondary'} w-100 btn-large ${disabledClass} py-4 d-flex flex-column align-items-center h-100" 
                             data-outlet-id="${outlet.id}" ${!outlet.active ? 'disabled' : ''}>
                         ${iconOrLogo}
-                        <span class="fs-4 fw-bold">${outlet.name}</span>
+                        <span class="fs-4 fw-bold">${outlet.shortName || outlet.name}</span>
                         ${statusBadge}
                     </button>
                 </div>
@@ -51,18 +51,18 @@ class PosView {
         this.appContainer.innerHTML = html;
     }
 
-    renderHome(outletName) {
+    renderHome(outlet) {
         this.mainNav.classList.remove('d-none');
-        if (outletName.toLowerCase() === 'quickies') {
-            this.navOutletName.innerHTML = `<img src="logo.jpeg" alt="Quickies Logo" class="me-2 rounded" style="height: 20px; object-fit: cover;"> ${outletName}`;
+        if (outlet.logo) {
+            this.navOutletName.innerHTML = `<img src="${outlet.logo}" alt="${outlet.name} Logo" class="me-2 rounded" style="height: 20px; width: 20px; object-fit: cover; display: inline-block;"> ${outlet.name}`;
         } else {
-            this.navOutletName.innerText = outletName;
+            this.navOutletName.innerText = outlet.name;
         }
 
         this.appContainer.innerHTML = `
             <div class="row justify-content-center mt-5">
                 <div class="col-md-10 text-center">
-                    <h2 class="mb-5 text-muted">Welcome to ${outletName}</h2>
+                    <h2 class="mb-5 text-muted">Welcome to ${outlet.name}</h2>
                     <div class="row g-4 justify-content-center mt-5">
                         <div class="col-md-4">
                             <button class="btn btn-primary w-100 btn-large shadow-sm" id="btn-take-order">
@@ -566,7 +566,7 @@ class PosView {
                                 <div class="mb-3 row text-end align-items-center">
                                     <label class="col-sm-6 col-form-label fw-bold">Opening Cash:</label>
                                     <div class="col-sm-6">
-                                        <input type="number" class="form-control text-end" id="opening-cash" value="2000" required>
+                                        <input type="number" class="form-control text-end" id="opening-cash" value="50" required>
                                     </div>
                                 </div>
                                 <div class="mb-3 row text-end align-items-center">

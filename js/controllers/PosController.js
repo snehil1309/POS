@@ -13,6 +13,37 @@ class PosController {
             this.showOutletSelection();
         });
 
+        // Setup password modal listener
+        document.getElementById('btn-submit-password').addEventListener('click', () => {
+            const pass = document.getElementById('admin-password').value;
+            if (pass === 'Effective1?') {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+                modal.hide();
+                document.getElementById('admin-password').value = '';
+                if (this.onPasswordSuccess) {
+                    this.onPasswordSuccess();
+                    this.onPasswordSuccess = null;
+                }
+            } else {
+                alert("Incorrect Password!");
+                document.getElementById('admin-password').value = '';
+            }
+        });
+
+        document.getElementById('admin-password').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('btn-submit-password').click();
+            }
+        });
+
+        document.getElementById('passwordModal').addEventListener('shown.bs.modal', () => {
+            document.getElementById('admin-password').focus();
+        });
+
+        document.getElementById('passwordModal').addEventListener('hidden.bs.modal', () => {
+            document.getElementById('admin-password').value = '';
+        });
+
         document.getElementById('btn-reset-data').addEventListener('click', () => {
             if (confirm("Are you sure you want to delete all sales, order data, and saved orders? This action cannot be undone.")) {
                 localStorage.removeItem('pos_orders');
@@ -40,7 +71,7 @@ class PosController {
     }
 
     showHome() {
-        this.view.renderHome(this.model.currentOutlet.name);
+        this.view.renderHome(this.model.currentOutlet);
     }
 
     showOrderType() {
@@ -115,7 +146,11 @@ class PosController {
             return;
         }
         if (e.target.closest('#btn-sales-reports')) {
-            this.showSalesReports();
+            if (this.model.currentOutlet.id === 'quickies') {
+                this.promptPassword(() => this.showSalesReports());
+            } else {
+                this.showSalesReports();
+            }
             return;
         }
         if (e.target.closest('#btn-day-closing')) {
@@ -287,8 +322,7 @@ class PosController {
             const o = this.model.currentOrder;
             const itemsText = o.items.map(i => `${i.item.name.padEnd(15).substring(0, 15)} ${String(i.qty).padStart(3)} ₹${String(i.item.price).padStart(5)}`).join('<br>');
 
-            const isQuickies = this.model.currentOutlet.name.toLowerCase() === 'quickies';
-            const logoHtml = isQuickies ? `<img src="logo.jpeg" alt="Quickies Logo" class="mb-2" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"><br>` : '';
+            const logoHtml = this.model.currentOutlet.logo ? `<img src="${this.model.currentOutlet.logo}" alt="${this.model.currentOutlet.name} Logo" class="mb-2" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"><br>` : '';
 
             const content = `
                 <div class="text-center mb-3">
@@ -373,9 +407,14 @@ class PosController {
         }
     }
 
+    promptPassword(callback) {
+        this.onPasswordSuccess = callback;
+        new bootstrap.Modal(document.getElementById('passwordModal')).show();
+    }
+
     triggerFullOrderPrint(order) {
         const printContainer = document.getElementById('print-section');
-        const isQuickies = this.model.currentOutlet.name.toLowerCase() === 'quickies';
+        const outletLogo = this.model.currentOutlet.logo;
 
         // 1. KOT Section HTML
         const kotHtml = `
@@ -410,7 +449,7 @@ class PosController {
         const billHtml = `
             <div>
                 <div class="print-header">
-                    ${isQuickies ? `<img src="logo.jpeg" style="width: 40px; height: 40px; margin-bottom: 5px;"><br>` : ''}
+                    ${outletLogo ? `<img src="${outletLogo}" style="width: 40px; height: 40px; margin-bottom: 5px;"><br>` : ''}
                     <div class="print-title">${this.model.currentOutlet.name.toUpperCase()}</div>
                     <div>Order ID: ${order.id}</div>
                     <div>Date: ${new Date(order.date).toLocaleString()}</div>
