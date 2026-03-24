@@ -296,6 +296,16 @@ class PosController {
             return;
         }
 
+        if (e.target.closest('#btn-edit-placed-order')) {
+            const id = e.target.closest('#btn-edit-placed-order').dataset.orderId;
+            this.promptPassword(() => {
+                if (this.model.loadPlacedOrder(id)) {
+                    this.showMenu();
+                }
+            });
+            return;
+        }
+
         if (e.target.closest('#btn-reprint-order')) {
             const id = e.target.closest('#btn-reprint-order').dataset.orderId;
             const orders = this.model.getOrders();
@@ -304,6 +314,19 @@ class PosController {
                 this.triggerFullOrderPrint(order);
                 alert("Re-print job sent to printer.");
             }
+            return;
+        }
+
+        // Apply Discount
+        const discountBtn = e.target.closest('.discount-btn');
+        if (discountBtn) {
+            const percent = parseInt(discountBtn.dataset.discount, 10);
+            if (this.model.currentOrder.discount === percent) {
+                this.model.setDiscount(0); // Toggle off
+            } else {
+                this.model.setDiscount(percent);
+            }
+            this.showBilling();
             return;
         }
 
@@ -337,7 +360,11 @@ class PosController {
                 <div>------------------------</div>
                 <div>${itemsText}</div>
                 <div>------------------------</div>
-                <div class="text-end fw-bold mt-2">TOTAL: ₹${this.model.getCartTotal()}</div>
+                ${o.discount ? `
+                <div class="text-end fw-bold mt-2">Sub Total: ₹${this.model.getCartTotal()}</div>
+                <div class="text-end fw-bold">Discount (${o.discount}%): -₹${Math.round(this.model.getCartTotal() * o.discount / 100)}</div>
+                ` : ''}
+                <div class="text-end fw-bold mt-2">TOTAL: ₹${this.model.getFinalTotal()}</div>
             `;
 
             document.getElementById('print-preview-content').innerHTML = content;
@@ -476,6 +503,10 @@ class PosController {
                     </tbody>
                 </table>
                 <div class="print-divider"></div>
+                ${order.discount ? `
+                <div class="print-text-right print-bold">Sub Total: ₹${order.items.reduce((sum, item) => sum + item.total, 0)}</div>
+                <div class="print-text-right print-bold">Discount (${order.discount}%): -₹${order.items.reduce((sum, item) => sum + item.total, 0) - order.total}</div>
+                ` : ''}
                 <div class="print-text-right print-bold" style="font-size: 1.2rem;">TOTAL: ₹${order.total}</div>
                 <div class="print-text-right print-bold">Paid via: ${order.paymentMode}</div>
                 <div class="print-divider"></div>

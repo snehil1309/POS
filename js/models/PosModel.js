@@ -7,70 +7,85 @@ class PosModel {
 
         this.menus = {
             quickies: [
-                // Ice Cream
-                { id: 'ic1', name: 'Vanilla Ice Cream', price: 40, category: 'Ice Cream' },
-                { id: 'ic2', name: 'Chocolate Chips Ice Cream', price: 60, category: 'Ice Cream' },
-                { id: 'ic3', name: 'Cookies and Cream Ice Cream', price: 65, category: 'Ice Cream' },
-                { id: 'ic4', name: 'Raj Bhog Ice Cream', price: 70, category: 'Ice Cream' },
-                { id: 'ic5', name: 'Mango Ice Cream', price: 65, category: 'Ice Cream' },
+                // Mocktails
+                { id: 'mk1', name: 'Fresh Lime Soda', price: 60, category: 'Mocktails' },
+                { id: 'mk2', name: 'Fresh Orange Soda', price: 70, category: 'Mocktails' },
+                { id: 'mk3', name: 'Blue Lagoon', price: 90, category: 'Mocktails' },
+                { id: 'mk4', name: 'Mint Mojito', price: 90, category: 'Mocktails' },
+                { id: 'mk5', name: 'Extra Addition', price: 40, category: 'Mocktails' },
 
-                // Waffles
-                { id: 'w1', name: 'Milk Chocolate Waffle', price: 150, category: 'Waffles' },
-                { id: 'w2', name: 'Cookies and Cream Waffle', price: 160, category: 'Waffles' },
-                { id: 'w3', name: 'Kitkat Waffle', price: 160, category: 'Waffles' },
-
-                // Milkshakes
-                { id: 'm1', name: 'Vanilla Milkshake', price: 80, category: 'Milkshakes' },
-                { id: 'm2', name: 'Chocolate Milkshake', price: 90, category: 'Milkshakes' },
-                { id: 'm3', name: 'Strawberry Milkshake', price: 100, category: 'Milkshakes' },
-                { id: 'm4', name: 'Mango Milkshake', price: 130, category: 'Milkshakes' },
-                { id: 'm5', name: 'Rajwadi Milkshake', price: 140, category: 'Milkshakes' },
-
-                // Desserts
-                { id: 'd1', name: 'Hot Chocolate Brownie', price: 200, category: 'Desserts' },
-
-                // Fries
-                { id: 'f1', name: 'Simply Salted Fries', price: 50, category: 'Fries' },
-                { id: 'f2', name: 'Peri Peri Fries', price: 60, category: 'Fries' },
-                { id: 'f3', name: 'Pepper Crunch Fries', price: 70, category: 'Fries' },
-                { id: 'f4', name: 'Cheese Mayo Loaded Fries', price: 80, category: 'Fries' },
-                { id: 'f5', name: 'Honey Chilly Lemon Fries', price: 90, category: 'Fries' },
-
-                // Mini Pizzas
-                { id: 'p1', name: 'Mini Margirita Pizza', price: 90, category: 'Mini Pizzas' },
-                { id: 'p2', name: 'Garden Fresh Pizza', price: 100, category: 'Mini Pizzas' },
-                { id: 'p3', name: 'Veggie Clasic Pizza', price: 110, category: 'Mini Pizzas' },
-                { id: 'p4', name: 'Tandoori Clasic Pizza', price: 110, category: 'Mini Pizzas' },
-                { id: 'p4', name: 'Mint Clasic Pizza', price: 120, category: 'Mini Pizzas' },
-
-                // Beverages
-                { id: 'b1', name: 'Zesty Fresh Lime', price: 40, category: 'Beverages' },
-                { id: 'b2', name: 'Sparkling Lime Soda', price: 50, category: 'Beverages' },
-                { id: 'b3', name: 'Orange Pop Soda', price: 70, category: 'Beverages' },
-                { id: 'b4', name: 'Mint Mojito', price: 70, category: 'Beverages' },
-                { id: 'b5', name: 'Cold Coffee', price: 90, category: 'Beverages' },
-
-                // Sandwiches & Toasts
-                { id: 's1', name: 'Golden Butter Toast', price: 50, category: 'Sandwiches & Toasts' },
-                { id: 's2', name: 'Clasic Comfort Sandwich', price: 80, category: 'Sandwiches & Toasts' },
-                { id: 's3', name: 'Grill Melt Veggies', price: 120, category: 'Sandwiches & Toasts' },
-                { id: 's4', name: 'Cheesy Veggies Grilled Sandwich', price: 140, category: 'Sandwiches & Toasts' },
-                { id: 's5', name: 'Cheese Club Sandwich', price: 160, category: 'Sandwiches & Toasts' },
-                { id: 's6', name: 'Minty Magic Sandwich', price: 140, category: 'Sandwiches & Toasts' },
-                { id: 's7', name: 'Tandoori Flames Sandwich', price: 140, category: 'Sandwiches & Toasts' },
+                // Sandwiches
+                { id: 'sw1', name: 'Golden Butter Toast', price: 50, category: 'Sandwiches' },
+                { id: 'sw2', name: 'Classic Comfort Sandwich', price: 80, category: 'Sandwiches' },
+                { id: 'sw3', name: 'Grill Melt Veggies', price: 120, category: 'Sandwiches' },
+                { id: 'sw4', name: 'Cheesy Veggie Grill', price: 140, category: 'Sandwiches' },
+                { id: 'sw5', name: 'Cheese Club S/W', price: 160, category: 'Sandwiches' },
+                { id: 'sw6', name: 'Extra Topping', price: 40, category: 'Sandwiches' },
 
                 // Potato Wedges
-                { id: 'pw1', name: 'Simplly Salted Wedges', price: 70, category: 'Potato Wedges' },
-                { id: 'pw2', name: 'Peri Peri Wedges', price: 80, category: 'Potato Wedges' },
-                { id: 'pw3', name: 'Cheese Mayo Wedges', price: 100, category: 'Potato Wedges' },
-                { id: 'pw4', name: 'Honey Chilly Lemon Wedges', price: 120, category: 'Potato Wedges' },
+                { id: 'pw1', name: 'Simply Salted Wedges', price: 80, category: 'Potato Wedges' },
+                { id: 'pw2', name: 'Peri Peri Wedges', price: 90, category: 'Potato Wedges' },
+                { id: 'pw3', name: 'Peppery Crunch Wedges', price: 90, category: 'Potato Wedges' },
+                { id: 'pw4', name: 'Cheese Mayo Loaded', price: 120, category: 'Potato Wedges' },
+                { id: 'pw5', name: 'Veggie Mayo Loaded', price: 130, category: 'Potato Wedges' },
+                { id: 'pw6', name: 'Tandoori Mayo Loaded Wedges', price: 130, category: 'Potato Wedges' },
+                { id: 'pw7', name: 'T.I (Thousand Island) Loaded Wedges', price: 130, category: 'Potato Wedges' },
+                { id: 'pw8', name: 'Extra Topping', price: 40, category: 'Potato Wedges' },
+
+                // French Fries
+                { id: 'ff1', name: 'Simply Salted', price: 50, category: 'French Fries' },
+                { id: 'ff2', name: 'Peri Peri Fries', price: 60, category: 'French Fries' },
+                { id: 'ff3', name: 'Pepper Crunch', price: 70, category: 'French Fries' },
+                { id: 'ff4', name: 'Cheese Mayo Loaded', price: 80, category: 'French Fries' },
+                { id: 'ff5', name: 'Veggies Mayo Loaded', price: 100, category: 'French Fries' },
+                { id: 'ff6', name: 'Tandoori Mayo Loaded', price: 100, category: 'French Fries' },
+                { id: 'ff7', name: 'Thousand Island Loaded', price: 100, category: 'French Fries' },
+                { id: 'ff8', name: 'Extra Topping', price: 40, category: 'French Fries' },
 
                 // Burgers
-                { id: 'br1', name: 'Veg Clasic Burger', price: 80, category: 'Burgers' },
-                { id: 'br2', name: 'Tandoori Burger', price: 90, category: 'Burgers' },
-                { id: 'br3', name: 'Double Cheese Burger', price: 110, category: 'Burgers' },
-                { id: 'br4', name: 'Cheese Pull Burger', price: 120, category: 'Burgers' },
-                { id: 'br5', name: 'Minty Magic Burger', price: 130, category: 'Burgers' }
+                { id: 'bg1', name: 'Aloo Tikki Burger', price: 100, category: 'Burgers' },
+                { id: 'bg2', name: 'Double Cheese Burger', price: 130, category: 'Burgers' },
+                { id: 'bg3', name: 'Veggies Loaded Burger', price: 130, category: 'Burgers' },
+                { id: 'bg4', name: 'Thousand Island Burger', price: 130, category: 'Burgers' },
+                { id: 'bg5', name: 'Q-Spicy Burger', price: 140, category: 'Burgers' },
+                { id: 'bg6', name: 'Q-Special Burger', price: 150, category: 'Burgers' },
+                { id: 'bg7', name: 'Extra Topping', price: 40, category: 'Burgers' },
+
+                // Pizza
+                { id: 'pz1', name: 'Margherita Pizza', price: 90, category: 'Pizza' },
+                { id: 'pz2', name: 'Garden Fresh Pizza', price: 100, category: 'Pizza' },
+                { id: 'pz3', name: 'Onion Topping Pizza', price: 100, category: 'Pizza' },
+                { id: 'pz4', name: 'Capsicum Topping Pizza', price: 100, category: 'Pizza' },
+                { id: 'pz5', name: 'Cherry Tomato Pizza', price: 100, category: 'Pizza' },
+                { id: 'pz6', name: 'Tandoori Veggies Pizza', price: 110, category: 'Pizza' },
+                { id: 'pz7', name: 'Italiano Pizza', price: 110, category: 'Pizza' },
+                { id: 'pz8', name: 'Veggies Classic Bite', price: 120, category: 'Pizza' },
+                { id: 'pz9', name: 'Extra Topping', price: 40, category: 'Pizza' },
+
+                // Waffle
+                { id: 'wf1', name: 'Kit Kat Waffle', price: 160, category: 'Waffle' },
+                { id: 'wf2', name: 'Oreo Waffle', price: 160, category: 'Waffle' },
+                { id: 'wf3', name: 'Blueberry Waffle', price: 170, category: 'Waffle' },
+                { id: 'wf4', name: 'Double Chocolate Waffle', price: 170, category: 'Waffle' },
+                { id: 'wf5', name: 'Chocolate Overload Waffle', price: 170, category: 'Waffle' },
+                { id: 'wf6', name: 'Simple Chocolate Waffle', price: 150, category: 'Waffle' },
+                { id: 'wf7', name: 'Extra Topping', price: 40, category: 'Waffle' },
+
+                // Milkshakes
+                { id: 'ms1', name: 'Vanilla Milkshake', price: 80, category: 'Milkshakes' },
+                { id: 'ms2', name: 'Chocolate Milkshake', price: 90, category: 'Milkshakes' },
+                { id: 'ms3', name: 'Chocolate Almond M/S', price: 140, category: 'Milkshakes' },
+                { id: 'ms4', name: 'Kit Kat M/S', price: 140, category: 'Milkshakes' },
+                { id: 'ms5', name: 'Cookies & Cream M/S', price: 120, category: 'Milkshakes' },
+                { id: 'ms6', name: 'Kajoo Gulkand M/S', price: 120, category: 'Milkshakes' },
+                { id: 'ms7', name: 'Rajwadi Milkshake', price: 140, category: 'Milkshakes' },
+                { id: 'ms8', name: 'Blueberry M/S', price: 130, category: 'Milkshakes' },
+                { id: 'ms9', name: 'Strawberry M/S', price: 100, category: 'Milkshakes' },
+                { id: 'ms10', name: 'Mango M/S', price: 130, category: 'Milkshakes' },
+                { id: 'ms11', name: 'Extra Topping', price: 40, category: 'Milkshakes' },
+
+                // Dessert
+                { id: 'ds1', name: 'Hot Chocolate Brownie', price: 200, category: 'Dessert' }
             ],
             okr: [
                 // Raita / Curd / Lassi
@@ -203,7 +218,8 @@ class PosModel {
             customerName: '',
             customerPhone: '',
             items: [], // { item: {}, qty: 1, total: 120 }
-            paymentMode: null
+            paymentMode: null,
+            discount: 0
         };
     }
 
@@ -235,6 +251,10 @@ class PosModel {
 
     setPaymentMode(mode) {
         this.currentOrder.paymentMode = mode;
+    }
+
+    setDiscount(percent) {
+        this.currentOrder.discount = percent;
     }
 
     addToCart(menuItemId) {
@@ -270,6 +290,14 @@ class PosModel {
         return this.currentOrder.items.reduce((sum, item) => sum + item.total, 0);
     }
 
+    getFinalTotal() {
+        const subTotal = this.getCartTotal();
+        if (this.currentOrder.discount) {
+            return Math.abs(Math.round(subTotal - (subTotal * this.currentOrder.discount / 100)));
+        }
+        return subTotal;
+    }
+
     clearCart() {
         this.currentOrder = {
             id: null,
@@ -278,7 +306,8 @@ class PosModel {
             customerName: '',
             customerPhone: '',
             items: [],
-            paymentMode: null
+            paymentMode: null,
+            discount: 0
         };
     }
 
@@ -296,12 +325,18 @@ class PosModel {
             customerName: this.currentOrder.customerName,
             customerPhone: this.currentOrder.customerPhone,
             items: [...this.currentOrder.items],
-            total: this.getCartTotal(),
-            paymentMode: this.currentOrder.paymentMode || 'Cash'
+            total: this.getFinalTotal(),
+            paymentMode: this.currentOrder.paymentMode || 'Cash',
+            discount: this.currentOrder.discount || 0
         };
 
         const orders = this.getOrders();
-        orders.push(orderRecord);
+        const existingIndex = orders.findIndex(o => o.id === orderRecord.id);
+        if (existingIndex !== -1) {
+            orders[existingIndex] = orderRecord;
+        } else {
+            orders.push(orderRecord);
+        }
         localStorage.setItem('pos_orders', JSON.stringify(orders));
 
         // If it was a saved order, remove it
@@ -327,7 +362,8 @@ class PosModel {
             customerName: this.currentOrder.customerName,
             customerPhone: this.currentOrder.customerPhone,
             items: [...this.currentOrder.items],
-            total: this.getCartTotal()
+            total: this.getCartTotal(),
+            discount: this.currentOrder.discount || 0
         };
 
         const savedOrders = this.getSavedOrders();
@@ -360,7 +396,27 @@ class PosModel {
                 customerName: order.customerName,
                 customerPhone: order.customerPhone,
                 items: [...order.items],
-                paymentMode: null
+                paymentMode: null,
+                discount: order.discount || 0
+            };
+            return true;
+        }
+        return false;
+    }
+
+    loadPlacedOrder(orderId) {
+        const orders = this.getOrders();
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            this.currentOrder = {
+                id: order.id,
+                type: order.type,
+                source: order.source,
+                customerName: order.customerName,
+                customerPhone: order.customerPhone,
+                items: [...order.items],
+                paymentMode: order.paymentMode,
+                discount: order.discount || 0
             };
             return true;
         }

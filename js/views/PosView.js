@@ -342,11 +342,34 @@ class PosView {
                                 </tbody>
                                 <tfoot>
                                     <tr class="border-top">
+                                        <td colspan="3" class="text-end fs-5">Sub Total:</td>
+                                        <td class="text-end fs-5 fw-bold">₹${cartTotal}</td>
+                                    </tr>
+                                    <tr class="${currentOrder.discount ? '' : 'd-none'}">
+                                        <td colspan="3" class="text-end text-danger fs-6">Discount (${currentOrder.discount || 0}%):</td>
+                                        <td class="text-end text-danger fs-6 fw-bold">-₹${currentOrder.discount ? Math.round(cartTotal * currentOrder.discount / 100) : 0}</td>
+                                    </tr>
+                                    <tr>
                                         <td colspan="3" class="text-end fs-4">Grand Total:</td>
-                                        <td class="text-end fs-4 fw-bold text-success">₹${cartTotal}</td>
+                                        <td class="text-end fs-4 fw-bold text-success">₹${currentOrder.discount ? Math.abs(Math.round(cartTotal - (cartTotal * currentOrder.discount / 100))) : cartTotal}</td>
                                     </tr>
                                 </tfoot>
                             </table>
+                            
+                            <hr class="my-4">
+                            
+                            <h5 class="mb-3">Apply Discount</h5>
+                            <div class="row g-2 mb-4">
+                                <div class="col-4">
+                                    <button class="btn ${currentOrder.discount === 5 ? 'btn-info text-white' : 'btn-outline-info'} w-100 py-2 fw-bold discount-btn" data-discount="5">5% OFF</button>
+                                </div>
+                                <div class="col-4">
+                                    <button class="btn ${currentOrder.discount === 10 ? 'btn-info text-white' : 'btn-outline-info'} w-100 py-2 fw-bold discount-btn" data-discount="10">10% OFF</button>
+                                </div>
+                                <div class="col-4">
+                                    <button class="btn ${currentOrder.discount === 15 ? 'btn-info text-white' : 'btn-outline-info'} w-100 py-2 fw-bold discount-btn" data-discount="15">15% OFF</button>
+                                </div>
+                            </div>
                             
                             <hr class="my-4">
                             
@@ -729,6 +752,16 @@ class PosView {
                                 </tbody>
                                 <tfoot>
                                     <tr class="border-top">
+                                        <td colspan="3" class="text-end fs-5">Sub Total:</td>
+                                        <td class="text-end fs-5 fw-bold">₹${order.items.reduce((sum, item) => sum + item.total, 0)}</td>
+                                    </tr>
+                                    ${order.discount ? `
+                                    <tr>
+                                        <td colspan="3" class="text-end text-danger fs-6">Discount (${order.discount}%):</td>
+                                        <td class="text-end text-danger fs-6 fw-bold">-₹${order.items.reduce((sum, item) => sum + item.total, 0) - order.total}</td>
+                                    </tr>
+                                    ` : ''}
+                                    <tr>
                                         <td colspan="3" class="text-end fs-4">Grand Total:</td>
                                         <td class="text-end fs-4 fw-bold text-success">₹${order.total}</td>
                                     </tr>
@@ -742,7 +775,8 @@ class PosView {
                                     <p class="mb-1 text-muted">Payment Mode</p>
                                     <p class="fw-bold fs-5">${order.paymentMode}</p>
                                 </div>
-                                <div class="col-6 text-end">
+                                <div class="col-6 text-end d-flex justify-content-end gap-2">
+                                    <button class="btn btn-warning" id="btn-edit-placed-order" data-order-id="${order.id}"><i class="bi bi-pencil"></i> Edit Order</button>
                                     <button class="btn btn-dark" id="btn-reprint-order" data-order-id="${order.id}"><i class="bi bi-printer"></i> Re-print Bill</button>
                                 </div>
                             </div>
