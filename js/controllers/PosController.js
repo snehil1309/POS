@@ -337,6 +337,29 @@ class PosController {
             payBtn.classList.add('active', 'border-3');
             this.model.setPaymentMode(payBtn.dataset.mode);
             document.getElementById('btn-place-order').disabled = false;
+            
+            // Toggle Cash Calculator
+            if (payBtn.dataset.mode === 'Cash') {
+                document.getElementById('cash-calculator-section').classList.remove('d-none');
+                this.cashReceived = 0;
+                this.updateCashCalculator();
+            } else {
+                document.getElementById('cash-calculator-section').classList.add('d-none');
+            }
+            return;
+        }
+
+        // Cash Denomination Buttons
+        const denomBtn = e.target.closest('.cash-denom-btn');
+        if (denomBtn) {
+            this.cashReceived = (this.cashReceived || 0) + parseInt(denomBtn.dataset.amt, 10);
+            this.updateCashCalculator();
+            return;
+        }
+
+        if (e.target.closest('.cash-clear-btn')) {
+            this.cashReceived = 0;
+            this.updateCashCalculator();
             return;
         }
 
@@ -437,6 +460,29 @@ class PosController {
     promptPassword(callback) {
         this.onPasswordSuccess = callback;
         new bootstrap.Modal(document.getElementById('passwordModal')).show();
+    }
+
+    updateCashCalculator() {
+        const receivedEl = document.getElementById('cash-received-display');
+        const returnEl = document.getElementById('cash-return-display');
+        if (receivedEl && returnEl) {
+            receivedEl.value = '₹' + (this.cashReceived || 0);
+            const total = this.model.getFinalTotal();
+            const change = (this.cashReceived || 0) - total;
+            
+            if (change > 0) {
+                returnEl.value = '₹' + change;
+                returnEl.classList.add('text-success');
+                returnEl.classList.remove('text-danger');
+            } else if (change < 0) {
+                returnEl.value = '-₹' + Math.abs(change) + ' (Short)';
+                returnEl.classList.add('text-danger');
+                returnEl.classList.remove('text-success');
+            } else {
+                returnEl.value = '₹0';
+                returnEl.classList.remove('text-danger', 'text-success');
+            }
+        }
     }
 
     triggerFullOrderPrint(order) {

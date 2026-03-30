@@ -387,6 +387,32 @@ class PosView {
                                 </div>
                             </div>
                             
+                            <div id="cash-calculator-section" class="mt-4 p-3 bg-light rounded border d-none">
+                                <h6>Cash Received Calculator</h6>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button class="btn btn-outline-secondary cash-denom-btn" data-amt="10">₹10</button>
+                                    <button class="btn btn-outline-secondary cash-denom-btn" data-amt="20">₹20</button>
+                                    <button class="btn btn-outline-secondary cash-denom-btn" data-amt="50">₹50</button>
+                                    <button class="btn btn-outline-secondary cash-denom-btn" data-amt="100">₹100</button>
+                                    <button class="btn btn-outline-secondary cash-denom-btn" data-amt="200">₹200</button>
+                                    <button class="btn btn-outline-secondary cash-denom-btn" data-amt="500">₹500</button>
+                                    <button class="btn btn-outline-secondary cash-denom-btn" data-amt="2000">₹2000</button>
+                                    <button class="btn btn-danger cash-clear-btn">Clear</button>
+                                </div>
+                                <div class="row text-end align-items-center mb-2">
+                                    <label class="col-6 col-form-label fw-bold text-muted">Amount Given:</label>
+                                    <div class="col-6">
+                                        <input type="text" class="form-control text-end fs-5 fw-bold" id="cash-received-display" value="₹0" readonly>
+                                    </div>
+                                </div>
+                                <div class="row text-end align-items-center">
+                                    <label class="col-6 col-form-label fw-bold text-muted">Return Change:</label>
+                                    <div class="col-6">
+                                        <input type="text" class="form-control text-end fs-5 fw-bold" id="cash-return-display" value="₹0" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="d-flex justify-content-between mt-5 gap-2">
                                 <button class="btn btn-secondary btn-lg flex-fill" id="btn-back-menu">Go Back</button>
                                 <button class="btn btn-warning btn-lg flex-fill" id="btn-save-order">Save Order</button>
