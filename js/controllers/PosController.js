@@ -45,15 +45,17 @@ class PosController {
         });
 
         document.getElementById('btn-reset-data').addEventListener('click', () => {
-            if (confirm("Are you sure you want to delete all sales, order data, and saved orders? This action cannot be undone.")) {
-                localStorage.removeItem('pos_orders');
-                localStorage.removeItem('pos_closings');
-                localStorage.removeItem('pos_saved_orders');
-                sessionStorage.removeItem('pos_active_outlet');
-                this.model.clearCart();
-                this.showOutletSelection();
-                alert("All data has been cleared.");
-            }
+            this.promptPassword(() => {
+                if (confirm("Are you sure you want to delete all sales, order data, and saved orders? This action cannot be undone.")) {
+                    localStorage.removeItem('pos_orders');
+                    localStorage.removeItem('pos_closings');
+                    localStorage.removeItem('pos_saved_orders');
+                    sessionStorage.removeItem('pos_active_outlet');
+                    this.model.clearCart();
+                    this.showOutletSelection();
+                    alert("All data has been cleared.");
+                }
+            });
         });
 
         // Initial setup check session
