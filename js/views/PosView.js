@@ -164,14 +164,15 @@ class PosView {
             <div class="row justify-content-center mt-5">
                 <div class="col-md-6 text-center">
                     <h2 class="mb-4">Customer Details</h2>
-                    <form id="customer-info-form" class="text-start bg-white p-4 rounded shadow-sm">
-                        <div class="mb-3">
+                    <form id="customer-info-form" class="text-start bg-white p-4 rounded shadow-sm position-relative">
+                        <div class="mb-3 position-relative">
                             <label for="cust-name" class="form-label fw-bold">Customer Name</label>
-                            <input type="text" class="form-control form-control-lg" id="cust-name" placeholder="Enter Name">
+                            <input type="text" class="form-control form-control-lg" id="cust-name" placeholder="Enter Name" autocomplete="off">
+                            <div id="customer-suggestions" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 1000; max-height: 200px; overflow-y: auto;"></div>
                         </div>
-                        <div class="mb-4">
+                        <div class="mb-4 position-relative">
                             <label for="cust-phone" class="form-label fw-bold">Phone Number</label>
-                            <input type="tel" class="form-control form-control-lg" id="cust-phone" placeholder="Enter Phone Number">
+                            <input type="tel" class="form-control form-control-lg" id="cust-phone" placeholder="Enter Phone Number" autocomplete="off">
                         </div>
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-secondary btn-lg px-4" id="btn-skip-customer">Skip / Later</button>
@@ -697,9 +698,12 @@ class PosView {
                         <hr>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fs-5 fw-bold text-success">₹${order.total}</span>
-                            <button class="btn btn-sm btn-outline-primary view-placed-btn" data-order-id="${order.id}">
-                                <i class="bi bi-eye"></i> View Order
-                            </button>
+                            <div class="d-flex gap-2">
+                                ${order.customerPhone ? `<button class="btn btn-sm btn-outline-success whatsapp-notify-btn" data-phone="${order.customerPhone}"><i class="bi bi-whatsapp"></i> Notify</button>` : ''}
+                                <button class="btn btn-sm btn-outline-primary view-placed-btn" data-order-id="${order.id}">
+                                    <i class="bi bi-eye"></i> View Order
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -801,7 +805,8 @@ class PosView {
                                     <p class="mb-1 text-muted">Payment Mode</p>
                                     <p class="fw-bold fs-5">${order.paymentMode}</p>
                                 </div>
-                                <div class="col-6 text-end d-flex justify-content-end gap-2">
+                                <div class="col-6 text-end d-flex justify-content-end gap-2 flex-wrap">
+                                    ${order.customerPhone ? `<button class="btn btn-success whatsapp-notify-btn" data-phone="${order.customerPhone}"><i class="bi bi-whatsapp"></i> Notify</button>` : ''}
                                     <button class="btn btn-warning" id="btn-edit-placed-order" data-order-id="${order.id}"><i class="bi bi-pencil"></i> Edit Order</button>
                                     <button class="btn btn-dark" id="btn-reprint-order" data-order-id="${order.id}"><i class="bi bi-printer"></i> Re-print Bill</button>
                                 </div>

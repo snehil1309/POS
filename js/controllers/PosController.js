@@ -233,6 +233,23 @@ class PosController {
             return;
         }
 
+        // Customer Auto-suggestion selection
+        const custSuggestion = e.target.closest('.cust-suggestion-item');
+        if (custSuggestion) {
+            document.getElementById('cust-name').value = custSuggestion.dataset.name;
+            document.getElementById('cust-phone').value = custSuggestion.dataset.phone;
+            document.getElementById('customer-suggestions').classList.add('d-none');
+            return;
+        }
+
+        // Hide customer suggestions if clicking outside
+        const suggestions = document.getElementById('customer-suggestions');
+        if (suggestions && !suggestions.classList.contains('d-none')) {
+            if (!e.target.closest('#customer-suggestions') && !e.target.closest('#cust-name')) {
+                suggestions.classList.add('d-none');
+            }
+        }
+
         // Menu Item Selection
         const menuCard = e.target.closest('.menu-item-card');
         if (menuCard) {
@@ -314,6 +331,31 @@ class PosController {
                 this.triggerFullOrderPrint(order);
                 alert("Re-print job sent to printer.");
             }
+            return;
+        }
+
+        // Render placed order details
+        if (e.target.closest('.view-placed-btn')) {
+            const id = e.target.closest('.view-placed-btn').dataset.orderId;
+            const orders = this.model.getOrders();
+            const order = orders.find(o => o.id === id);
+            if (order) {
+                this.view.renderOrderDetails(order);
+                window.scrollTo(0, 0);
+            }
+            return;
+        }
+
+        // WhatsApp Notification
+        const waBtn = e.target.closest('.whatsapp-notify-btn');
+        if (waBtn) {
+            let phone = waBtn.dataset.phone;
+            phone = phone.replace(/\D/g, ''); // Remove non-digits
+            if (phone.length === 10) {
+                phone = "91" + phone;
+            }
+            const msg = "Hello%20your%20order%20is%20ready%20______QUICKIES%20SERVED%20HOT%20SERVED%20QUICK";
+            window.open(`https://wa.me/${phone}/?text=${msg}`, "_blank");
             return;
         }
 
@@ -608,6 +650,32 @@ class PosController {
             }
 
             document.getElementById('menu-grid').innerHTML = menuItemsHtml;
+        }
+
+        // Customer Search Autocomplete
+        if (e.target.id === 'cust-name') {
+            const term = e.target.value.toLowerCase().trim();
+            const container = document.getElementById('customer-suggestions');
+            if (!container) return;
+            
+            if (term.length < 2) {
+                container.classList.add('d-none');
+                return;
+            }
+            
+            const customers = this.model.getUniqueCustomers();
+            const matches = customers.filter(c => c.name && c.name.toLowerCase().includes(term)).slice(0, 5);
+            
+            if (matches.length > 0) {
+                container.innerHTML = matches.map(c => `
+                    <button type="button" class="list-group-item list-group-item-action cust-suggestion-item py-2" data-name="${c.name || ''}" data-phone="${c.phone || ''}">
+                        <strong>${c.name}</strong> ${c.phone ? `<span class="text-muted small ms-2">${c.phone}</span>` : ''}
+                    </button>
+                `).join('');
+                container.classList.remove('d-none');
+            } else {
+                container.classList.add('d-none');
+            }
         }
     }
 }

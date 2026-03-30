@@ -433,6 +433,25 @@ class PosModel {
         return JSON.parse(localStorage.getItem('pos_orders') || '[]');
     }
 
+    getUniqueCustomers() {
+        const orders = this.getOrders();
+        const customers = [];
+        const seen = new Set();
+        
+        orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        for (const o of orders) {
+            if (o.customerName) {
+                const key = `${o.customerName.toLowerCase().trim()}_${o.customerPhone || ''}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    customers.push({ name: o.customerName.trim(), phone: o.customerPhone || '' });
+                }
+            }
+        }
+        return customers;
+    }
+
     getDailyStats() {
         if (!this.currentOutlet) return {};
         const orders = this.getOrders().filter(o => o.outletId === this.currentOutlet.id);
