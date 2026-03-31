@@ -352,6 +352,7 @@ class PosController {
         const waBtn = e.target.closest('.whatsapp-notify-btn');
         if (waBtn) {
             let phone = waBtn.dataset.phone;
+            if (!phone) return;
             phone = phone.replace(/\D/g, ''); // Remove non-digits
             if (phone.length === 10) {
                 phone = "91" + phone;

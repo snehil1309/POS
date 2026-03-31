@@ -484,6 +484,9 @@ class PosView {
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fs-5 fw-bold text-success">₹${order.total}</span>
                             <div class="gap-2 d-flex">
+                                <button class="btn btn-sm btn-outline-success whatsapp-notify-btn" ${order.customerPhone ? `data-phone="${order.customerPhone}"` : 'disabled'} title="${order.customerPhone ? 'Notify via WhatsApp' : 'No phone number provided'}">
+                                    <i class="bi bi-whatsapp"></i> Notify
+                                </button>
                                 <button class="btn btn-sm btn-outline-danger delete-saved-btn" data-order-id="${order.id}">
                                     <i class="bi bi-trash"></i>
                                 </button>
