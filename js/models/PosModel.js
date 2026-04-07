@@ -74,18 +74,27 @@ class PosModel {
                 // Milkshakes
                 { id: 'ms1', name: 'Vanilla Milkshake', price: 80, category: 'Milkshakes' },
                 { id: 'ms2', name: 'Chocolate Milkshake', price: 90, category: 'Milkshakes' },
-                { id: 'ms3', name: 'Chocolate Almond M/S', price: 140, category: 'Milkshakes' },
-                { id: 'ms4', name: 'Kit Kat M/S', price: 140, category: 'Milkshakes' },
-                { id: 'ms5', name: 'Cookies & Cream M/S', price: 120, category: 'Milkshakes' },
-                { id: 'ms6', name: 'Kajoo Gulkand M/S', price: 120, category: 'Milkshakes' },
+                { id: 'ms3', name: 'Chocolate Almond Milkshake', price: 140, category: 'Milkshakes' },
+                { id: 'ms4', name: 'Kit Kat Milkshake', price: 140, category: 'Milkshakes' },
+                { id: 'ms5', name: 'Cookies & Cream Milkshake', price: 120, category: 'Milkshakes' },
+                { id: 'ms6', name: 'Kaju Gulkand Milkshake', price: 120, category: 'Milkshakes' },
                 { id: 'ms7', name: 'Rajwadi Milkshake', price: 140, category: 'Milkshakes' },
-                { id: 'ms8', name: 'Blueberry M/S', price: 130, category: 'Milkshakes' },
-                { id: 'ms9', name: 'Strawberry M/S', price: 100, category: 'Milkshakes' },
-                { id: 'ms10', name: 'Mango M/S', price: 130, category: 'Milkshakes' },
+                { id: 'ms8', name: 'Blueberry Milkshake', price: 130, category: 'Milkshakes' },
+                { id: 'ms9', name: 'Strawberry Milkshake', price: 100, category: 'Milkshakes' },
+                { id: 'ms10', name: 'Mango Milkshake', price: 130, category: 'Milkshakes' },
                 { id: 'ms11', name: 'Extra Topping', price: 40, category: 'Milkshakes' },
 
                 // Dessert
-                { id: 'ds1', name: 'Hot Chocolate Brownie', price: 200, category: 'Dessert' }
+                { id: 'ds1', name: 'Hot Chocolate Brownie', price: 200, category: 'Dessert' },
+
+                // Coffee
+                { id: 'cf1', name: 'Hot Coffee Black', price: 50, category: 'Coffee' },
+                { id: 'cf2', name: 'Cappuccino', price: 70, category: 'Coffee' },
+                { id: 'cf3', name: 'Latte', price: 70, category: 'Coffee' },
+                { id: 'cf4', name: 'Hot Chocolate Coffee', price: 70, category: 'Coffee' },
+                { id: 'cf5', name: 'Cold Coffee', price: 100, category: 'Coffee' },
+                { id: 'cf6', name: 'Extra Addition', price: 40, category: 'Coffee' },
+
             ],
             okr: [
                 // Raita / Curd / Lassi
@@ -437,9 +446,9 @@ class PosModel {
         const orders = this.getOrders();
         const customers = [];
         const seen = new Set();
-        
+
         orders.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
+
         for (const o of orders) {
             if (o.customerName) {
                 const key = `${o.customerName.toLowerCase().trim()}_${o.customerPhone || ''}`;
