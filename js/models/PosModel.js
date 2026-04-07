@@ -232,6 +232,40 @@ class PosModel {
         };
     }
 
+    getInventory() {
+        const inv = JSON.parse(localStorage.getItem('pos_inventory') || '[]');
+        if (!this.currentOutlet) return inv;
+        return inv.filter(i => i.outletId === this.currentOutlet.id);
+    }
+
+    addInventoryItem(name, store) {
+        if (!name || !store || !this.currentOutlet) return;
+        const inv = JSON.parse(localStorage.getItem('pos_inventory') || '[]');
+        inv.push({
+            id: 'INV' + Date.now(),
+            outletId: this.currentOutlet.id,
+            name: name,
+            store: store,
+            qty: ''
+        });
+        localStorage.setItem('pos_inventory', JSON.stringify(inv));
+    }
+
+    updateInventoryQty(id, qty) {
+        const inv = JSON.parse(localStorage.getItem('pos_inventory') || '[]');
+        const item = inv.find(i => i.id === id);
+        if (item) {
+            item.qty = qty;
+            localStorage.setItem('pos_inventory', JSON.stringify(inv));
+        }
+    }
+
+    removeInventoryItem(id) {
+        let inv = JSON.parse(localStorage.getItem('pos_inventory') || '[]');
+        inv = inv.filter(i => i.id !== id);
+        localStorage.setItem('pos_inventory', JSON.stringify(inv));
+    }
+
     setOutlet(outletId) {
         const outlet = this.outlets.find(o => o.id === outletId);
         if (outlet && outlet.active) {

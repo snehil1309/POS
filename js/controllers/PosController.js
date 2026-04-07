@@ -111,6 +111,11 @@ class PosController {
         this.view.renderDayClosing(stats);
     }
 
+    showInventory() {
+        const inventory = this.model.getInventory();
+        this.view.renderInventory(inventory);
+    }
+
     showPlacedOrders() {
         const orders = this.model.getOrders();
         // Sort by date descending (latest first)
@@ -156,7 +161,41 @@ class PosController {
             return;
         }
         if (e.target.closest('#btn-day-closing')) {
-            this.showDayClosing();
+            const inventory = this.model.getInventory();
+            this.view.showInventoryCheckModal(inventory);
+
+            const modalEl = document.getElementById('inventoryCheckModal');
+
+            const sendBtns = modalEl.querySelectorAll('.btn-send-store-wa');
+            sendBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const storeName = btn.dataset.store;
+                    const phone = btn.dataset.phone;
+
+                    // Save all quantities from modal
+                    document.querySelectorAll('.inv-modal-qty').forEach(input => {
+                        this.model.updateInventoryQty(input.dataset.invId, input.value);
+                    });
+
+                    // Filter items for this store
+                    const storeItems = this.model.getInventory().filter(i => (i.store || 'Others') === storeName);
+
+                    // Format WhatsApp Message
+                    const invText = storeItems.map(i => `${i.name}: ${i.qty || 0}`).join('\n');
+                    const msg = `*Inventory Update* - ${storeName} (${this.model.currentOutlet.name})\n-----------------\n${invText}`;
+                    window.open(`https://wa.me/${phone}/?text=${encodeURIComponent(msg)}`, "_blank");
+                });
+            });
+
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                // When modal is closed, proceed to day closing
+                this.showDayClosing();
+            }, { once: true });
+
+            return;
+        }
+        if (e.target.closest('#btn-inventory')) {
+            this.showInventory();
             return;
         }
         if (e.target.closest('#btn-placed-orders') || e.target.closest('#btn-placed-orders-inner')) {
@@ -232,6 +271,33 @@ class PosController {
 
             this.model.setCustomerInfo(name, phone);
             this.showMenu();
+            return;
+        }
+
+        // Inventory Management
+        if (e.target.closest('#add-inventory-form button[type="submit"]')) {
+            e.preventDefault();
+            const nameInput = document.getElementById('new-inv-name');
+            const storeInput = document.getElementById('new-inv-store');
+            this.model.addInventoryItem(nameInput.value, storeInput.value);
+            this.showInventory();
+            return;
+        }
+
+        const deleteInvBtn = e.target.closest('.btn-delete-inv');
+        if (deleteInvBtn) {
+            if (confirm("Delete this inventory item?")) {
+                this.model.removeInventoryItem(deleteInvBtn.dataset.invId);
+                this.showInventory();
+            }
+            return;
+        }
+
+        if (e.target.closest('#btn-save-inventory')) {
+            document.querySelectorAll('.inv-qty-input').forEach(input => {
+                this.model.updateInventoryQty(input.dataset.invId, input.value);
+            });
+            alert("Inventory quantities saved!");
             return;
         }
 
@@ -382,7 +448,7 @@ class PosController {
             payBtn.classList.add('active', 'border-3');
             this.model.setPaymentMode(payBtn.dataset.mode);
             document.getElementById('btn-place-order').disabled = false;
-            
+
             // Toggle Cash Calculator
             if (payBtn.dataset.mode === 'Cash') {
                 document.getElementById('cash-calculator-section').classList.remove('d-none');
@@ -463,7 +529,7 @@ class PosController {
                     updateStatus('status-kot', 'bi-check-circle-fill', 'KOT Printed', 'text-success');
                     updateStatus('status-bill', 'bi-check-circle-fill', 'Bill Printed', 'text-success');
                     updateStatus('status-drawer', 'bi-check-circle-fill', 'Cash Drawer Opened', 'text-success');
-                    
+
                     document.getElementById('print-status-text').innerText = 'Complete!';
                     document.getElementById('print-status-text').classList.add('text-success');
                     document.getElementById('btn-done-order').classList.remove('d-none');
@@ -514,7 +580,7 @@ class PosController {
             receivedEl.value = '₹' + (this.cashReceived || 0);
             const total = this.model.getFinalTotal();
             const change = (this.cashReceived || 0) - total;
-            
+
             if (change > 0) {
                 returnEl.value = '₹' + change;
                 returnEl.classList.add('text-success');
@@ -618,7 +684,7 @@ class PosController {
         setTimeout(() => {
             printContainer.innerHTML = billHtml;
             window.print();
-            
+
             // Clear after both jobs are sent
             setTimeout(() => {
                 printContainer.innerHTML = '';
@@ -660,15 +726,15 @@ class PosController {
             const term = e.target.value.toLowerCase().trim();
             const container = document.getElementById('customer-suggestions');
             if (!container) return;
-            
+
             if (term.length < 2) {
                 container.classList.add('d-none');
                 return;
             }
-            
+
             const customers = this.model.getUniqueCustomers();
             const matches = customers.filter(c => c.name && c.name.toLowerCase().includes(term)).slice(0, 5);
-            
+
             if (matches.length > 0) {
                 container.innerHTML = matches.map(c => `
                     <button type="button" class="list-group-item list-group-item-action cust-suggestion-item py-2" data-name="${c.name || ''}" data-phone="${c.phone || ''}">

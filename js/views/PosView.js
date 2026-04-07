@@ -25,11 +25,11 @@ class PosView {
             const statusBadge = outlet.active ?
                 '<span class="badge bg-success mt-2">Active</span>' :
                 '<span class="badge bg-secondary mt-2">Coming Soon</span>';
- 
+
             const iconOrLogo = outlet.logo
                 ? `<img src="${outlet.logo}" alt="${outlet.name} Logo" class="mb-2 rounded shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">`
                 : '<i class="bi bi-building fs-1 mb-2 d-block"></i>';
- 
+
             html += `
                 <div class="col-md-5">
                     <button class="btn ${outlet.active ? 'btn-outline-primary' : 'btn-outline-secondary'} w-100 btn-large ${disabledClass} py-4 d-flex flex-column align-items-center h-100" 
@@ -94,10 +94,165 @@ class PosView {
                                 Day Closing
                             </button>
                         </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-dark w-100 btn-large shadow-sm" id="btn-inventory">
+                                <i class="bi bi-box-seam"></i>
+                                Inventory
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
+    }
+
+    renderInventory(inventory) {
+        const stores = ["Mayur Enterprise", "R.S Traders", "Others", "Other"];
+        let accordionHtml = stores.map((store, index) => {
+            let storeItems = inventory.filter(i => (i.store || 'Others') === store);
+            if (store === "Other") {
+                storeItems = inventory.filter(i => !stores.includes(i.store) && i.store !== 'Others');
+            }
+            if (storeItems.length === 0 && store === "Other") return '';
+
+            let itemsHtml = storeItems.map(item => `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div><strong>${item.name}</strong></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" class="form-control form-control-sm text-center inv-qty-input" style="width: 80px;" placeholder="Qty" value="${item.qty}" data-inv-id="${item.id}">
+                        <button class="btn btn-sm btn-outline-danger btn-delete-inv" data-inv-id="${item.id}"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+            if (storeItems.length === 0) itemsHtml = `<div class="p-3 text-muted text-center">No items in this category.</div>`;
+
+            return `
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-${index}">
+                        <button class="accordion-button ${index === 0 ? '' : 'collapsed'} py-3 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${index}">
+                            ${store} <span class="badge bg-secondary ms-2">${storeItems.length}</span>
+                        </button>
+                    </h2>
+                    <div id="collapse-${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#inventory-accordion">
+                        <div class="accordion-body p-0">
+                            <div class="list-group list-group-flush">
+                                ${itemsHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        this.appContainer.innerHTML = `
+            <div class="container mt-4 mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-box-seam text-dark"></i> Inventory Management</h2>
+                    <button class="btn btn-secondary" id="btn-back-home"><i class="bi bi-arrow-left"></i> Home</button>
+                </div>
+                
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <form id="add-inventory-form" class="d-flex flex-wrap gap-2">
+                                    <input type="text" id="new-inv-name" class="form-control flex-grow-1" placeholder="Enter Material Name" style="min-width: 200px;" required>
+                                    <select id="new-inv-store" class="form-select" style="width: auto;" required>
+                                        <option value="Mayur Enterprise">Mayur Enterprise</option>
+                                        <option value="R.S Traders">R.S Traders</option>
+                                        <option value="Others" selected>Others</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary px-4">Add</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                                <h5 class="mb-0">Current Inventory</h5>
+                                <button class="btn btn-success btn-sm px-3" id="btn-save-inventory"><i class="bi bi-save"></i> Save All Quantities</button>
+                            </div>
+                            <div class="accordion accordion-flush" id="inventory-accordion">
+                                ${accordionHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    showInventoryCheckModal(inventory) {
+        let existingModal = document.getElementById('inventoryCheckModal');
+        if (existingModal) existingModal.remove();
+
+        const stores = [
+            { name: "Mayur Enterprise", phone: "919426702292" },
+            { name: "R.S Traders", phone: "919537005274" },
+            { name: "Others", phone: "919106804063" }
+        ];
+
+        let accordionHtml = stores.map((store, index) => {
+            let storeItems = inventory.filter(i => (i.store || 'Others') === store.name);
+            if (storeItems.length === 0) return '';
+
+            let itemsHtml = storeItems.map(item => `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>${item.name}</span>
+                    <input type="text" class="form-control form-control-sm text-center inv-modal-qty" style="width: 80px;" value="${item.qty}" data-inv-id="${item.id}">
+                </div>
+            `).join('');
+
+            return `
+                <div class="accordion-item border">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modal-collapse-${index}">
+                            ${store.name} <span class="badge bg-secondary ms-2">${storeItems.length}</span>
+                        </button>
+                    </h2>
+                    <div id="modal-collapse-${index}" class="accordion-collapse collapse" data-bs-parent="#inventory-modal-accordion">
+                        <div class="accordion-body p-2 bg-light">
+                            ${itemsHtml}
+                            <button type="button" class="btn btn-success btn-sm w-100 mt-2 fw-bold btn-send-store-wa" data-store="${store.name}" data-phone="${store.phone}">
+                                <i class="bi bi-whatsapp"></i> Update & Send ${store.name}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (accordionHtml === '') {
+            accordionHtml = `<div class="text-center text-muted p-3">No inventory items tracked. <br><small>Skip to proceed.</small></div>`;
+        }
+
+        const modalHtml = `
+            <div class="modal fade" id="inventoryCheckModal" tabindex="-1" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title"><i class="bi bi-box-seam"></i> Inventory Check</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-3">
+                            <p class="text-muted small mb-3">Please verify quantities and send WhatsApp requests directly to the stores.</p>
+                            <div class="accordion" id="inventory-modal-accordion">
+                                ${accordionHtml}
+                            </div>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-between bg-light">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-dark fw-bold" data-bs-dismiss="modal">Proceed to Close Day</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modalEl = document.getElementById('inventoryCheckModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
     }
 
     renderOrderType() {
@@ -476,7 +631,7 @@ class PosView {
                             <span class="badge bg-primary">${order.type}</span>
                         </div>
                         <p class="text-muted small mb-3">
-                            <i class="bi bi-clock"></i> ${new Date(order.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}<br>
+                            <i class="bi bi-clock"></i> ${new Date(order.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}<br>
                             <i class="bi bi-telephone"></i> ${order.customerPhone || 'N/A'}<br>
                             <i class="bi bi-hash"></i> ${order.id}
                         </p>
