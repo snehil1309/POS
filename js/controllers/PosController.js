@@ -6,6 +6,7 @@ class PosController {
         // Binding events to root app container (Event Delegation)
         this.view.appContainer.addEventListener('click', this.handleAppClick.bind(this));
         this.view.appContainer.addEventListener('input', this.handleAppInput.bind(this));
+        this.view.appContainer.addEventListener('change', this.handleAppChange.bind(this));
 
         // Setup top nav listeners
         document.getElementById('btn-change-outlet').addEventListener('click', () => {
@@ -96,9 +97,23 @@ class PosController {
         this.view.renderBilling(this.model.currentOrder, this.model.getCartTotal());
     }
 
-    showSalesReports() {
-        const stats = this.model.getDailyStats();
-        this.view.renderSalesReports(stats);
+    showSalesReports(period = 'daily', startDate = null, endDate = null) {
+        let stats;
+        if (period === 'custom' && (!startDate || !endDate)) {
+            stats = { grossSales: 0, totalOrders: 0, netSales: 0, cashSales: 0, upiSales: 0 };
+        } else {
+            stats = this.model.getSalesStats(period, startDate, endDate);
+        }
+        this.view.renderSalesReports(stats, period);
+
+        if (period === 'custom' && startDate && endDate) {
+            setTimeout(() => {
+                const s = document.getElementById('report-start-date');
+                const e = document.getElementById('report-end-date');
+                if (s) s.value = startDate;
+                if (e) e.value = endDate;
+            }, 0);
+        }
     }
 
     showSavedOrders() {
@@ -157,6 +172,26 @@ class PosController {
                 this.promptPassword(() => this.showSalesReports());
             } else {
                 this.showSalesReports();
+            }
+            return;
+        }
+
+        const reportTab = e.target.closest('.report-tab');
+        if (reportTab) {
+            e.preventDefault();
+            const period = reportTab.dataset.period;
+            this.showSalesReports(period);
+            return;
+        }
+
+        if (e.target.closest('#custom-report-form button[type="submit"]')) {
+            e.preventDefault();
+            const startDate = document.getElementById('report-start-date').value;
+            const endDate = document.getElementById('report-end-date').value;
+            if (startDate && endDate) {
+                this.showSalesReports('custom', startDate, endDate);
+            } else {
+                alert('Please select both Start Date and End Date.');
             }
             return;
         }
@@ -477,7 +512,10 @@ class PosController {
         // Print Preview
         if (e.target.closest('#btn-preview-bill')) {
             const o = this.model.currentOrder;
-            const itemsText = o.items.map(i => `${i.item.name.padEnd(15).substring(0, 15)} ${String(i.qty).padStart(3)} ₹${String(i.item.price).padStart(5)}`).join('<br>');
+            const itemsText = o.items.map(i => {
+                const currentPrice = i.customPrice !== undefined ? i.customPrice : i.item.price;
+                return `${i.item.name.padEnd(15).substring(0, 15)} ${String(i.qty).padStart(3)} ₹${String(currentPrice).padStart(5)}`;
+            }).join('<br>');
 
             const logoHtml = this.model.currentOutlet.logo ? `<img src="${this.model.currentOutlet.logo}" alt="${this.model.currentOutlet.name} Logo" class="mb-2" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"><br>` : '';
 
@@ -690,6 +728,17 @@ class PosController {
                 printContainer.innerHTML = '';
             }, 1000);
         }, 500);
+    }
+
+    handleAppChange(e) {
+        if (e.target.classList.contains('custom-price-input')) {
+            const id = e.target.dataset.menuId;
+            const newPrice = parseFloat(e.target.value);
+            if (!isNaN(newPrice) && newPrice >= 0) {
+                this.model.updateItemPrice(id, newPrice);
+                this.showBilling();
+            }
+        }
     }
 
     handleAppInput(e) {

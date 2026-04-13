@@ -466,14 +466,22 @@ class PosView {
     }
 
     renderBilling(currentOrder, cartTotal) {
-        let itemsHtml = currentOrder.items.map(cartItem => `
+        let itemsHtml = currentOrder.items.map(cartItem => {
+            const currentPrice = cartItem.customPrice !== undefined ? cartItem.customPrice : cartItem.item.price;
+            return `
             <tr>
-                <td>${cartItem.item.name}</td>
-                <td class="text-center">${cartItem.qty}</td>
-                <td class="text-end">₹${cartItem.item.price}</td>
-                <td class="text-end fw-bold">₹${cartItem.total}</td>
+                <td class="align-middle">${cartItem.item.name}</td>
+                <td class="text-center align-middle">${cartItem.qty}</td>
+                <td class="text-end">
+                    <div class="input-group input-group-sm justify-content-end" style="width: 100px; float: right;">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control text-end custom-price-input" data-menu-id="${cartItem.item.id}" value="${currentPrice}" min="0" step="1">
+                    </div>
+                </td>
+                <td class="text-end fw-bold align-middle">₹${cartItem.total}</td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
 
         this.appContainer.innerHTML = `
             <div class="row justify-content-center mt-4">
@@ -678,9 +686,11 @@ class PosView {
         `;
     }
 
-    renderSalesReports(stats) {
+    renderSalesReports(stats, currentPeriod = 'daily') {
+        const isActive = (p) => p === currentPeriod ? 'active' : '';
+
         this.appContainer.innerHTML = `
-            <div class="row justify-content-center mt-4">
+            <div class="row justify-content-center mt-4 mb-5">
                 <div class="col-md-10">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2>Sales Reports</h2>
@@ -689,16 +699,41 @@ class PosView {
                     
                     <ul class="nav nav-tabs mb-4">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#">Daily</a>
+                            <a class="nav-link report-tab ${isActive('daily')}" href="#" data-period="daily">Daily</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link disabled" href="#">Weekly (WIP)</a>
+                            <a class="nav-link report-tab ${isActive('weekly')}" href="#" data-period="weekly">Weekly</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link disabled" href="#">Monthly (WIP)</a>
+                            <a class="nav-link report-tab ${isActive('monthly')}" href="#" data-period="monthly">Monthly</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link report-tab ${isActive('custom')}" href="#" data-period="custom">Custom Date</a>
                         </li>
                     </ul>
+
+                    <div id="custom-date-section" class="${currentPeriod === 'custom' ? '' : 'd-none'} card p-3 mb-4 shadow-sm border-0">
+                        <form id="custom-report-form" class="row gx-3 align-items-end">
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <label class="form-label text-muted">Start Date</label>
+                                <input type="date" class="form-control" id="report-start-date" required>
+                            </div>
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <label class="form-label text-muted">End Date</label>
+                                <input type="date" class="form-control" id="report-end-date" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Get Report</button>
+                            </div>
+                        </form>
+                    </div>
                     
+                    ${(currentPeriod === 'custom' && stats.grossSales === 0 && stats.totalOrders === 0 && !stats.period) ? `
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar3 display-4"></i>
+                        <h4 class="mt-3">Select Dates to View Report</h4>
+                    </div>
+                    ` : `
                     <div class="row g-4">
                         <div class="col-md-4">
                             <div class="card report-card p-4">
@@ -721,15 +756,15 @@ class PosView {
                         
                         <div class="col-md-6 mt-4">
                             <div class="card shadow-sm border-0 h-100">
-                                <div class="card-header bg-white">
+                                <div class="card-header bg-white py-3">
                                     <h5 class="mb-0">Payment Split</h5>
                                 </div>
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
                                         <span class="fs-5"><i class="bi bi-cash text-success"></i> Cash</span>
                                         <span class="fs-5 fw-bold">₹${stats.cashSales || 0}</span>
                                     </div>
-                                    <div class="d-flex justify-content-between border-bottom pb-2">
+                                    <div class="d-flex justify-content-between pb-1">
                                         <span class="fs-5"><i class="bi bi-qr-code text-primary"></i> UPI</span>
                                         <span class="fs-5 fw-bold">₹${stats.upiSales || 0}</span>
                                     </div>
@@ -737,6 +772,7 @@ class PosView {
                             </div>
                         </div>
                     </div>
+                    `}
                 </div>
             </div>
         `;

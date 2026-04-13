@@ -307,11 +307,13 @@ class PosModel {
         const existing = this.currentOrder.items.find(i => i.item.id === menuItemId);
         if (existing) {
             existing.qty += 1;
-            existing.total = existing.qty * existing.item.price;
+            const price = existing.customPrice !== undefined ? existing.customPrice : existing.item.price;
+            existing.total = existing.qty * price;
         } else {
             this.currentOrder.items.push({
                 item: item,
                 qty: 1,
+                customPrice: item.price,
                 total: item.price
             });
         }
@@ -320,12 +322,22 @@ class PosModel {
     updateCartQty(menuItemId, change) {
         const existingInfo = this.currentOrder.items.findIndex(i => i.item.id === menuItemId);
         if (existingInfo !== -1) {
-            this.currentOrder.items[existingInfo].qty += change;
-            if (this.currentOrder.items[existingInfo].qty <= 0) {
+            const currentItem = this.currentOrder.items[existingInfo];
+            currentItem.qty += change;
+            if (currentItem.qty <= 0) {
                 this.currentOrder.items.splice(existingInfo, 1);
             } else {
-                this.currentOrder.items[existingInfo].total = this.currentOrder.items[existingInfo].qty * this.currentOrder.items[existingInfo].item.price;
+                const price = currentItem.customPrice !== undefined ? currentItem.customPrice : currentItem.item.price;
+                currentItem.total = currentItem.qty * price;
             }
+        }
+    }
+
+    updateItemPrice(menuItemId, newPrice) {
+        const existingInfo = this.currentOrder.items.find(i => i.item.id === menuItemId);
+        if (existingInfo) {
+            existingInfo.customPrice = newPrice;
+            existingInfo.total = existingInfo.qty * newPrice;
         }
     }
 
@@ -493,6 +505,51 @@ class PosModel {
             }
         }
         return customers;
+    }
+
+    getSalesStats(period = 'daily', startDate = null, endDate = null) {
+        if (!this.currentOutlet) return {};
+        const orders = this.getOrders().filter(o => o.outletId === this.currentOutlet.id);
+
+        const now = new Date();
+        let targetOrders = [];
+
+        if (period === 'daily') {
+            const today = now.toISOString().split('T')[0];
+            targetOrders = orders.filter(o => o.date.startsWith(today));
+        } else if (period === 'weekly') {
+            const past7 = new Date();
+            past7.setDate(now.getDate() - 6);
+            past7.setHours(0,0,0,0);
+            targetOrders = orders.filter(o => new Date(o.date) >= past7);
+        } else if (period === 'monthly') {
+            const past30 = new Date();
+            past30.setDate(now.getDate() - 29);
+            past30.setHours(0,0,0,0);
+            targetOrders = orders.filter(o => new Date(o.date) >= past30);
+        } else if (period === 'custom' && startDate && endDate) {
+            const start = new Date(startDate);
+            start.setHours(0,0,0,0);
+            const end = new Date(endDate);
+            end.setHours(23,59,59,999);
+            targetOrders = orders.filter(o => {
+                const d = new Date(o.date);
+                return d >= start && d <= end;
+            });
+        }
+
+        const totalSales = targetOrders.reduce((sum, o) => sum + o.total, 0);
+        const cashSales = targetOrders.filter(o => o.paymentMode === 'Cash').reduce((sum, o) => sum + o.total, 0);
+        const upiSales = targetOrders.filter(o => o.paymentMode === 'UPI').reduce((sum, o) => sum + o.total, 0);
+
+        return {
+            period: period,
+            totalOrders: targetOrders.length,
+            grossSales: totalSales,
+            cashSales: cashSales,
+            upiSales: upiSales,
+            netSales: totalSales
+        };
     }
 
     getDailyStats() {
