@@ -95,6 +95,14 @@ class PosModel {
                 { id: 'cf5', name: 'Cold Coffee', price: 100, category: 'Coffee' },
                 { id: 'cf6', name: 'Extra Addition', price: 40, category: 'Coffee' },
 
+                // Salad
+                { id: 'sd1', name: 'Cottage Cheese-Basil Cream Bomb Salad', price: 120, category: 'Salad' },
+                { id: 'sd2', name: 'Guccamoli Salad', price: 150, category: 'Salad' },
+                { id: 'sd3', name: 'Greek Salad', price: 120, category: 'Salad' },
+                { id: 'sd4', name: 'Mint Tomato Paneer Punch Salad', price: 130, category: 'Salad' },
+                { id: 'sd5', name: 'Letuce-Walnut Chrisp Salad', price: 120, category: 'Salad' },
+                { id: 'sd6', name: 'Extra Addition', price: 40, category: 'Salad' },
+
             ],
             okr: [
                 // Raita / Curd / Lassi
@@ -520,18 +528,18 @@ class PosModel {
         } else if (period === 'weekly') {
             const past7 = new Date();
             past7.setDate(now.getDate() - 6);
-            past7.setHours(0,0,0,0);
+            past7.setHours(0, 0, 0, 0);
             targetOrders = orders.filter(o => new Date(o.date) >= past7);
         } else if (period === 'monthly') {
             const past30 = new Date();
             past30.setDate(now.getDate() - 29);
-            past30.setHours(0,0,0,0);
+            past30.setHours(0, 0, 0, 0);
             targetOrders = orders.filter(o => new Date(o.date) >= past30);
         } else if (period === 'custom' && startDate && endDate) {
             const start = new Date(startDate);
-            start.setHours(0,0,0,0);
+            start.setHours(0, 0, 0, 0);
             const end = new Date(endDate);
-            end.setHours(23,59,59,999);
+            end.setHours(23, 59, 59, 999);
             targetOrders = orders.filter(o => {
                 const d = new Date(o.date);
                 return d >= start && d <= end;
