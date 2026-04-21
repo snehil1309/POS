@@ -45,6 +45,29 @@ class PosController {
             document.getElementById('admin-password').value = '';
         });
 
+        // Setup expense modal listener
+        const btnSaveExpense = document.getElementById('btn-save-expense');
+        if (btnSaveExpense) {
+            btnSaveExpense.addEventListener('click', () => {
+                const amount = document.getElementById('expense-amount').value;
+                const desc = document.getElementById('expense-desc').value;
+                if (!amount || amount <= 0) {
+                    alert('Please enter a valid amount.');
+                    return;
+                }
+                this.model.addExpense(amount, desc);
+                
+                // Hide modal and clear fields
+                const modal = bootstrap.Modal.getInstance(document.getElementById('expenseModal'));
+                if (modal) modal.hide();
+                
+                document.getElementById('expense-amount').value = '';
+                document.getElementById('expense-desc').value = '';
+                
+                alert('Expense saved successfully!');
+            });
+        }
+
         document.getElementById('btn-reset-data').addEventListener('click', () => {
             this.promptPassword(() => {
                 if (confirm("Are you sure you want to delete all sales, order data, and saved orders? This action cannot be undone.")) {
@@ -172,6 +195,15 @@ class PosController {
                 this.promptPassword(() => this.showSalesReports());
             } else {
                 this.showSalesReports();
+            }
+            return;
+        }
+
+        if (e.target.closest('#btn-add-expense')) {
+            const modalEl = document.getElementById('expenseModal');
+            if (modalEl) {
+                const modalParams = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modalParams.show();
             }
             return;
         }

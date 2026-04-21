@@ -550,14 +550,69 @@ class PosModel {
         const cashSales = targetOrders.filter(o => o.paymentMode === 'Cash').reduce((sum, o) => sum + o.total, 0);
         const upiSales = targetOrders.filter(o => o.paymentMode === 'UPI').reduce((sum, o) => sum + o.total, 0);
 
+        // Fetch Expenses for the same period
+        const expenses = this.getExpenses(period, startDate, endDate);
+        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
         return {
             period: period,
             totalOrders: targetOrders.length,
             grossSales: totalSales,
             cashSales: cashSales,
             upiSales: upiSales,
-            netSales: totalSales
+            netSales: totalSales,
+            totalExpenses: totalExpenses,
+            profitLoss: totalSales - totalExpenses
         };
+    }
+
+    addExpense(amount, description) {
+        if (!this.currentOutlet) return;
+        const expenses = JSON.parse(localStorage.getItem('pos_expenses') || '[]');
+        expenses.push({
+            id: 'EXP' + Date.now(),
+            date: new Date().toISOString(),
+            outletId: this.currentOutlet.id,
+            amount: parseFloat(amount),
+            description: description || 'Daily Expense'
+        });
+        localStorage.setItem('pos_expenses', JSON.stringify(expenses));
+    }
+
+    getExpenses(period = 'daily', startDate = null, endDate = null) {
+        if (!this.currentOutlet) return [];
+        const allExpenses = JSON.parse(localStorage.getItem('pos_expenses') || '[]');
+        const expenses = allExpenses.filter(e => e.outletId === this.currentOutlet.id);
+
+        const now = new Date();
+        let targetExpenses = [];
+
+        if (period === 'daily') {
+            const today = now.toISOString().split('T')[0];
+            targetExpenses = expenses.filter(e => e.date.startsWith(today));
+        } else if (period === 'weekly') {
+            const past7 = new Date();
+            past7.setDate(now.getDate() - 6);
+            past7.setHours(0, 0, 0, 0);
+            targetExpenses = expenses.filter(e => new Date(e.date) >= past7);
+        } else if (period === 'monthly') {
+            const past30 = new Date();
+            past30.setDate(now.getDate() - 29);
+            past30.setHours(0, 0, 0, 0);
+            targetExpenses = expenses.filter(e => new Date(e.date) >= past30);
+        } else if (period === 'custom' && startDate && endDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            targetExpenses = expenses.filter(e => {
+                const d = new Date(e.date);
+                return d >= start && d <= end;
+            });
+        } else {
+            targetExpenses = expenses;
+        }
+        return targetExpenses;
     }
 
     getDailyStats() {

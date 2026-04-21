@@ -100,6 +100,12 @@ class PosView {
                                 Inventory
                             </button>
                         </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-danger w-100 btn-large shadow-sm" id="btn-add-expense">
+                                <i class="bi bi-wallet2"></i>
+                                Add Expense
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -735,22 +741,28 @@ class PosView {
                     </div>
                     ` : `
                     <div class="row g-4">
-                        <div class="col-md-4">
-                            <div class="card report-card p-4">
-                                <h6 class="text-muted">Total Gross Sales</h6>
-                                <h3 class="fw-bold">₹${stats.grossSales || 0}</h3>
+                        <div class="col-md-3">
+                            <div class="card report-card p-3">
+                                <h6 class="text-muted small">Total Gross Sales</h6>
+                                <h4 class="fw-bold">₹${stats.grossSales || 0}</h4>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card report-card p-4 border-success">
-                                <h6 class="text-muted">Total Orders</h6>
-                                <h3 class="fw-bold text-success">${stats.totalOrders || 0}</h3>
+                        <div class="col-md-3">
+                            <div class="card report-card p-3 border-danger">
+                                <h6 class="text-muted small">Total Expenses</h6>
+                                <h4 class="fw-bold text-danger">₹${stats.totalExpenses || 0}</h4>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card report-card p-4 border-info">
-                                <h6 class="text-muted">Net Sales</h6>
-                                <h3 class="fw-bold text-info">₹${stats.netSales || 0}</h3>
+                        <div class="col-md-3">
+                            <div class="card report-card p-3 border-info">
+                                <h6 class="text-muted small">Net Sales</h6>
+                                <h4 class="fw-bold text-info">₹${stats.netSales || 0}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card report-card p-3 ${stats.profitLoss >= 0 ? 'border-success' : 'border-danger'}">
+                                <h6 class="text-muted small">Profit / Loss</h6>
+                                <h4 class="fw-bold ${stats.profitLoss >= 0 ? 'text-success' : 'text-danger'}">₹${stats.profitLoss || 0}</h4>
                             </div>
                         </div>
                         
@@ -768,6 +780,17 @@ class PosView {
                                         <span class="fs-5"><i class="bi bi-qr-code text-primary"></i> UPI</span>
                                         <span class="fs-5 fw-bold">₹${stats.upiSales || 0}</span>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mt-4">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Orders info</h5>
+                                </div>
+                                <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center">
+                                    <h1 class="display-3 fw-bold text-primary mb-2">${stats.totalOrders || 0}</h1>
+                                    <h5 class="text-muted">Total Orders placed</h5>
                                 </div>
                             </div>
                         </div>
