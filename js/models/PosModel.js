@@ -43,13 +43,10 @@ class PosModel {
                 { id: 'ff8', name: 'Extra Topping', price: 40, category: 'French Fries' },
 
                 // Burgers
-                { id: 'bg1', name: 'Aloo Tikki Burger', price: 100, category: 'Burgers' },
-                { id: 'bg2', name: 'Double Cheese Burger', price: 130, category: 'Burgers' },
-                { id: 'bg3', name: 'Veggies Loaded Burger', price: 130, category: 'Burgers' },
-                { id: 'bg4', name: 'Thousand Island Burger', price: 130, category: 'Burgers' },
-                { id: 'bg5', name: 'Q-Spicy Burger', price: 140, category: 'Burgers' },
-                { id: 'bg6', name: 'Q-Special Burger', price: 150, category: 'Burgers' },
-                { id: 'bg7', name: 'Extra Topping', price: 40, category: 'Burgers' },
+                { id: 'mb1', name: 'Chocolate Muska Bun', price: 60, category: 'Muska Bun' },
+                { id: 'mb2', name: 'Fruit Jam Muska Bun', price: 60, category: 'Muska Bun' },
+                { id: 'mb3', name: 'Honey Muska Bun', price: 60, category: 'Muska Bun' },
+
 
                 // Pizza
                 { id: 'pz1', name: 'Margherita Pizza', price: 90, category: 'Pizza' },
@@ -82,10 +79,10 @@ class PosModel {
                 { id: 'ms8', name: 'Blueberry Milkshake', price: 130, category: 'Milkshakes' },
                 { id: 'ms9', name: 'Strawberry Milkshake', price: 100, category: 'Milkshakes' },
                 { id: 'ms10', name: 'Mango Milkshake', price: 130, category: 'Milkshakes' },
-                { id: 'ms11', name: 'Extra Topping', price: 40, category: 'Milkshakes' },
+                { id: 'ms11', name: 'Thandai Milkshake', price: 130, category: 'Milkshakes' },
 
                 // Dessert
-                { id: 'ds1', name: 'Hot Chocolate Brownie', price: 200, category: 'Dessert' },
+                // { id: 'ds1', name: 'Hot Chocolate Brownie', price: 200, category: 'Dessert' },
 
                 // Coffee
                 { id: 'cf1', name: 'Hot Coffee Black', price: 50, category: 'Coffee' },
