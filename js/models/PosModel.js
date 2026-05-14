@@ -81,8 +81,14 @@ class PosModel {
                 { id: 'ms10', name: 'Mango Milkshake', price: 130, category: 'Milkshakes' },
                 { id: 'ms11', name: 'Thandai Milkshake', price: 130, category: 'Milkshakes' },
 
-                // Dessert
-                // { id: 'ds1', name: 'Hot Chocolate Brownie', price: 200, category: 'Dessert' },
+                // Cold Drinks
+                { id: 'cd1', name: 'Water Bottle (10 Rs)', price: 10, category: 'Cold Drinks' },
+                { id: 'cd2', name: 'Water Bottle (20 Rs)', price: 20, category: 'Cold Drinks' },
+                { id: 'cd3', name: 'Coca Cola', price: 20, category: 'Cold Drinks' },
+                { id: 'cd4', name: 'Sprite', price: 20, category: 'Cold Drinks' },
+                { id: 'cd5', name: 'Coke Zero', price: 20, category: 'Cold Drinks' },
+                { id: 'cd6', name: 'Diet Coke', price: 20, category: 'Cold Drinks' },
+                { id: 'cd7', name: 'Red Bull', price: 125, category: 'Cold Drinks' },
 
                 // Coffee
                 { id: 'cf1', name: 'Hot Coffee Black', price: 50, category: 'Coffee' },
