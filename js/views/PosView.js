@@ -915,8 +915,11 @@ class PosView {
                         <hr>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fs-5 fw-bold text-success">₹${order.total}</span>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 flex-wrap justify-content-end">
                                 ${order.customerPhone ? `<button class="btn btn-sm btn-outline-success whatsapp-notify-btn" data-phone="${order.customerPhone}"><i class="bi bi-whatsapp"></i> Notify</button>` : ''}
+                                <button class="btn btn-sm btn-success send-bill-btn" data-order-id="${order.id}">
+                                    <i class="bi bi-whatsapp"></i> Send Bill
+                                </button>
                                 <button class="btn btn-sm btn-outline-primary view-placed-btn" data-order-id="${order.id}">
                                     <i class="bi bi-eye"></i> View Order
                                 </button>
@@ -1024,6 +1027,7 @@ class PosView {
                                 </div>
                                 <div class="col-6 text-end d-flex justify-content-end gap-2 flex-wrap">
                                     ${order.customerPhone ? `<button class="btn btn-success whatsapp-notify-btn" data-phone="${order.customerPhone}"><i class="bi bi-whatsapp"></i> Notify</button>` : ''}
+                                    <button class="btn btn-success send-bill-btn" data-order-id="${order.id}"><i class="bi bi-whatsapp"></i> Send Bill</button>
                                     <button class="btn btn-warning" id="btn-edit-placed-order" data-order-id="${order.id}"><i class="bi bi-pencil"></i> Edit Order</button>
                                     <button class="btn btn-dark" id="btn-reprint-order" data-order-id="${order.id}"><i class="bi bi-printer"></i> Re-print Bill</button>
                                 </div>

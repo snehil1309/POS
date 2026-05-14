@@ -495,6 +495,35 @@ class PosController {
             return;
         }
 
+        // Send Bill to WhatsApp
+        const sendBillBtn = e.target.closest('.send-bill-btn');
+        if (sendBillBtn) {
+            if (sendBillBtn.disabled) return;
+            
+            const id = sendBillBtn.dataset.orderId;
+            const orders = this.model.getOrders();
+            const order = orders.find(o => o.id === id);
+            
+            if (order) {
+                if (!order.customerPhone) {
+                    alert("Customer phone number not available.");
+                    return;
+                }
+                
+                // Add loading state
+                const originalHtml = sendBillBtn.innerHTML;
+                sendBillBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+                sendBillBtn.disabled = true;
+                
+                setTimeout(() => {
+                    this.sendBillToWhatsApp(order);
+                    sendBillBtn.innerHTML = originalHtml;
+                    sendBillBtn.disabled = false;
+                }, 500);
+            }
+            return;
+        }
+
         // Apply Discount
         const discountBtn = e.target.closest('.discount-btn');
         if (discountBtn) {
@@ -827,5 +856,60 @@ class PosController {
                 container.classList.add('d-none');
             }
         }
+    }
+
+    generateBill(order) {
+        const subtotal = order.items.reduce((sum, item) => sum + item.total, 0);
+        const tax = 0; // Tax (if applicable)
+        const discount = order.discount ? (subtotal - order.total) : 0;
+        const dateStr = new Date(order.date).toLocaleString();
+        
+        let itemsStr = '';
+        order.items.forEach((item, index) => {
+            const currentPrice = item.customPrice !== undefined ? item.customPrice : item.item.price;
+            itemsStr += `${index + 1}. ${item.item.name} x ${item.qty} = ₹${item.total}\n`;
+        });
+
+        const bill = `## QUICKIES CAFE
+
+Customer Name: ${order.customerName || 'Walk-in'}
+Mobile: ${order.customerPhone || 'N/A'}
+Order ID: ${order.id}
+Date & Time: ${dateStr}
+
+## Items Ordered:
+
+${itemsStr}
+---
+
+Subtotal: ₹${subtotal}
+${discount ? `Discount: -₹${discount}\n` : ''}Tax (if applicable): ₹${tax}
+Total Amount: ₹${order.total}
+----------------------------
+
+QUICKIES...
+SERVED HOT. SERVED QUICK.
+
+## Thank you for your order.`;
+
+        return bill;
+    }
+
+    sendBillToWhatsApp(order) {
+        if (!order.customerPhone) {
+            alert("Customer phone number not available.");
+            return;
+        }
+
+        const billMsg = this.generateBill(order);
+        let phone = order.customerPhone;
+        phone = phone.replace(/\D/g, ''); // Remove non-digits
+        if (phone.length === 10) {
+            phone = "91" + phone;
+        }
+        
+        const encodedMsg = encodeURIComponent(billMsg);
+        const waUrl = `https://wa.me/${phone}?text=${encodedMsg}`;
+        window.open(waUrl, "_blank");
     }
 }
