@@ -186,6 +186,12 @@ class PosController {
             this.showOrderType();
             return;
         }
+        if (e.target.closest('#btn-online-orders')) {
+            this.model.setOrderType('Take Away');
+            this.model.setOrderSource('Online WhatsApp');
+            this.showCustomerInfo();
+            return;
+        }
         if (e.target.closest('#btn-saved-orders')) {
             this.showSavedOrders();
             return;

@@ -1,0 +1,112 @@
+:root {
+    --primary-color: #ff6b6b;
+    --primary-dark: #ee5253;
+    --secondary-color: #222f3e;
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-color: #2d3436;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover, .btn-primary:focus:not(:focus-visible) {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, var(--secondary-color), #000000);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Category Filters */
+.category-filters::-webkit-scrollbar {
+    height: 6px;
+}
+.category-filters::-webkit-scrollbar-thumb {
+    background-color: #ced4da;
+    border-radius: 10px;
+}
+.category-btn {
+    white-space: nowrap;
+    border-radius: 20px;
+    padding: 0.5rem 1.2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.category-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Menu Item Card */
+.menu-card {
+    border: none;
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+.menu-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+.menu-card-body {
+    padding: 1.5rem;
+}
+.menu-title {
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+.menu-price {
+    font-weight: 800;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+/* Add to Cart Button */
+.btn-add-cart {
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* Cart Item */
+.cart-item {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+.qty-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* Cart Footer */
+.cart-footer {
+    z-index: 10;
+}

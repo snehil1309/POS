@@ -106,6 +106,12 @@ class PosView {
                                 Add Expense
                             </button>
                         </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-primary w-100 btn-large shadow-sm" id="btn-online-orders">
+                                <i class="bi bi-whatsapp"></i>
+                                Online Orders
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -309,8 +315,8 @@ class PosView {
                             </button>
                         </div>
                         <div class="col-md-4">
-                            <button class="btn btn-outline-secondary w-100 btn-large disabled-outlet" disabled>
-                                Quickies App<br><small>(Coming Soon)</small>
+                            <button class="btn btn-outline-success w-100 btn-large source-btn" data-source="Online WhatsApp">
+                                Online WhatsApp
                             </button>
                         </div>
                     </div>
