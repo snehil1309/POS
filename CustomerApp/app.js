@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCategories();
     renderMenu();
     updateCartUI();
+    initCheckoutModalEvents();
 
     searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase();
@@ -219,6 +220,213 @@ function handleCheckout() {
         return;
     }
     
+    const totalPrice = cart.reduce((sum, c) => sum + (c.item.price * c.qty), 0);
+    document.getElementById('checkout-total-price').innerText = `₹${totalPrice}`;
+    
+    // Reset screenshot and OCR UI state
+    const screenshotInput = document.getElementById('screenshot-input');
+    const screenshotPreview = document.getElementById('screenshot-preview');
+    const previewOverlay = document.querySelector('.preview-overlay');
+    const scanningStatus = document.querySelector('.scanning-status');
+    const paymentIdInput = document.getElementById('payment-id-input');
+    const ocrBadge = document.getElementById('ocr-badge');
+    const paymentIdFeedback = document.getElementById('payment-id-feedback');
+    const btnConfirmCheckout = document.getElementById('btn-confirm-checkout');
+    
+    if (screenshotInput) screenshotInput.value = '';
+    if (screenshotPreview) screenshotPreview.src = '';
+    if (previewOverlay) previewOverlay.classList.add('d-none');
+    if (scanningStatus) scanningStatus.classList.add('d-none');
+    if (paymentIdInput) paymentIdInput.value = '';
+    if (ocrBadge) {
+        ocrBadge.innerText = 'Waiting for upload';
+        ocrBadge.className = 'badge bg-secondary-subtle text-secondary-emphasis';
+    }
+    if (paymentIdFeedback) paymentIdFeedback.innerHTML = '';
+    if (btnConfirmCheckout) btnConfirmCheckout.disabled = true;
+    
+    // Hide Cart Offcanvas
+    const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
+    if (offcanvas) {
+        offcanvas.hide();
+    }
+
+    // Show Checkout Modal
+    if (checkoutModalInstance) {
+        checkoutModalInstance.show();
+    }
+}
+
+// --- Checkout Modal & OCR Logic ---
+let checkoutModalInstance = null;
+
+function initCheckoutModalEvents() {
+    const screenshotInput = document.getElementById('screenshot-input');
+    const screenshotPreview = document.getElementById('screenshot-preview');
+    const previewOverlay = document.querySelector('.preview-overlay');
+    const btnRemoveScreenshot = document.getElementById('btn-remove-screenshot');
+    const scanningStatus = document.querySelector('.scanning-status');
+    const paymentIdInput = document.getElementById('payment-id-input');
+    const ocrBadge = document.getElementById('ocr-badge');
+    const paymentIdFeedback = document.getElementById('payment-id-feedback');
+    const btnConfirmCheckout = document.getElementById('btn-confirm-checkout');
+    const dropzone = document.getElementById('screenshot-dropzone');
+
+    // Setup Modal instance
+    checkoutModalInstance = new bootstrap.Modal(document.getElementById('checkoutModal'));
+
+    // Handle Drag & Drop styling
+    if (dropzone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0) {
+                screenshotInput.files = files;
+                handleScreenshotUpload(files[0]);
+            }
+        });
+    }
+
+    // Handle file input selection
+    screenshotInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            handleScreenshotUpload(e.target.files[0]);
+        }
+    });
+
+    // Handle screenshot removal
+    btnRemoveScreenshot.addEventListener('click', () => {
+        resetScreenshotState();
+    });
+
+    // Validate payment ID input manual edit
+    paymentIdInput.addEventListener('input', (e) => {
+        // Allow only digits
+        let val = e.target.value.replace(/\D/g, '');
+        if (val.length > 12) val = val.substring(0, 12);
+        e.target.value = val;
+        
+        validatePaymentId(val, false);
+    });
+
+    // Confirm Checkout
+    btnConfirmCheckout.addEventListener('click', confirmAndSendWhatsApp);
+
+    function handleScreenshotUpload(file) {
+        if (!file.type.startsWith('image/')) {
+            alert('Please upload an image file.');
+            return;
+        }
+
+        // Show Preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            screenshotPreview.src = e.target.result;
+            previewOverlay.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+
+        // Show scanning state
+        scanningStatus.classList.remove('d-none');
+        ocrBadge.innerText = 'Scanning...';
+        ocrBadge.className = 'badge bg-info text-white';
+        paymentIdFeedback.innerHTML = '<span class="text-info"><i class="bi bi-cpu"></i> Running OCR text scan on screenshot...</span>';
+        btnConfirmCheckout.disabled = true;
+
+        // Perform OCR with Tesseract.js
+        Tesseract.recognize(
+            file,
+            'eng',
+            { logger: m => console.log(m) }
+        ).then(({ data: { text } }) => {
+            scanningStatus.classList.add('d-none');
+            console.log("OCR Extracted Text:", text);
+
+            // Clean the extracted text and search for a 12-digit transaction ID
+            const matches = text.match(/\b\d{12}\b/g);
+            if (matches && matches.length > 0) {
+                const detectedUTR = matches[0];
+                paymentIdInput.value = detectedUTR;
+                validatePaymentId(detectedUTR, true);
+            } else {
+                ocrBadge.innerText = 'Not Detected';
+                ocrBadge.className = 'badge bg-warning text-dark';
+                paymentIdFeedback.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> No 12-digit UPI UTR/Ref number detected. Please enter it manually below.</span>';
+                
+                // If there's already a 12-digit manually entered, keep it valid
+                validatePaymentId(paymentIdInput.value, false);
+            }
+        }).catch(err => {
+            console.error("OCR Error:", err);
+            scanningStatus.classList.add('d-none');
+            ocrBadge.innerText = 'Error';
+            ocrBadge.className = 'badge bg-danger text-white';
+            paymentIdFeedback.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> Scanning failed. Please enter the Transaction ID manually.</span>';
+            validatePaymentId(paymentIdInput.value, false);
+        });
+    }
+
+    function validatePaymentId(val, autoDetected) {
+        if (val.length === 12 && /^\d{12}$/.test(val)) {
+            btnConfirmCheckout.disabled = false;
+            if (autoDetected) {
+                ocrBadge.innerText = 'Auto-Detected';
+                ocrBadge.className = 'badge bg-success text-white';
+                paymentIdFeedback.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Valid 12-digit Payment ID successfully scanned!</span>';
+            } else {
+                ocrBadge.innerText = 'Verified';
+                ocrBadge.className = 'badge bg-success text-white';
+                paymentIdFeedback.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Valid 12-digit Transaction ID. Ready to order!</span>';
+            }
+        } else {
+            btnConfirmCheckout.disabled = true;
+            if (val.length > 0) {
+                paymentIdFeedback.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle"></i> Transaction ID must be exactly 12 digits.</span>';
+            } else {
+                if (!autoDetected) {
+                    paymentIdFeedback.innerHTML = '<span class="text-muted">Enter the 12-digit UTR/Ref number from your payment confirmation.</span>';
+                }
+            }
+        }
+    }
+
+    function resetScreenshotState() {
+        screenshotInput.value = '';
+        screenshotPreview.src = '';
+        previewOverlay.classList.add('d-none');
+        scanningStatus.classList.add('d-none');
+        paymentIdInput.value = '';
+        ocrBadge.innerText = 'Waiting for upload';
+        ocrBadge.className = 'badge bg-secondary-subtle text-secondary-emphasis';
+        paymentIdFeedback.innerHTML = '';
+        btnConfirmCheckout.disabled = true;
+    }
+}
+
+function confirmAndSendWhatsApp() {
+    const name = document.getElementById('customer-name').value.trim();
+    const phone = document.getElementById('customer-phone').value.trim();
+    const utr = document.getElementById('payment-id-input').value.trim();
+
+    if (!name || !phone || !utr || utr.length !== 12) {
+        alert("Please complete the payment verification first.");
+        return;
+    }
+
     // Generate Order Text
     let orderText = `*NEW ONLINE ORDER* 🍔\n`;
     orderText += `------------------------\n`;
@@ -232,23 +440,27 @@ function handleCheckout() {
     
     const totalPrice = cart.reduce((sum, c) => sum + (c.item.price * c.qty), 0);
     orderText += `------------------------\n`;
-    orderText += `*TOTAL AMOUNT: ₹${totalPrice}*\n\n`;
-    orderText += `Please share payment QR or details here.`;
+    orderText += `*TOTAL AMOUNT: ₹${totalPrice}*\n`;
+    orderText += `------------------------\n`;
+    orderText += `*PAYMENT VERIFICATION* ✅\n`;
+    orderText += `*Status:* Paid via UPI QR\n`;
+    orderText += `*Transaction UTR:* ${utr}\n`;
+    orderText += `------------------------\n`;
+    orderText += `Thank you! Please verify the transaction and confirm my order.`;
+
+    const encodedText = encodeURIComponent(orderText);
+    const waLink = `https://wa.me/919106804063/?text=${encodedText}`;
+    window.open(waLink, '_blank');
+
+    // Reset customer app state
+    cart = [];
+    document.getElementById('customer-name').value = '';
+    document.getElementById('customer-phone').value = '';
+    updateCartUI();
+    renderMenu();
     
-    const confirmAlert = confirm(`Your total is ₹${totalPrice}.\n\nTo complete your order:\n1. We will redirect you to our WhatsApp.\n2. Please send the pre-filled message.\n3. Make the payment and send a screenshot on WhatsApp for confirmation.\n\nProceed?`);
-    
-    if (confirmAlert) {
-        const encodedText = encodeURIComponent(orderText);
-        const waLink = `https://wa.me/919106804063/?text=${encodedText}`;
-        window.open(waLink, '_blank');
-        
-        // Optional: clear cart after redirect
-        cart = [];
-        document.getElementById('customer-name').value = '';
-        document.getElementById('customer-phone').value = '';
-        updateCartUI();
-        renderMenu();
-        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
-        offcanvas.hide();
+    // Hide Modal
+    if (checkoutModalInstance) {
+        checkoutModalInstance.hide();
     }
 }

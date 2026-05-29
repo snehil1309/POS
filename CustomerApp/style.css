@@ -110,3 +110,82 @@ body {
 .cart-footer {
     z-index: 10;
 }
+
+/* --- Checkout & Payment Modal Styles --- */
+.border-end-md {
+    border-right: 1px solid #e9ecef;
+}
+@media (max-width: 767.98px) {
+    .border-end-md {
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+.qr-container {
+    transition: all 0.3s ease;
+}
+.qr-container:hover {
+    transform: scale(1.02);
+}
+.checkout-qr {
+    max-height: 250px;
+    object-fit: contain;
+}
+
+.bg-primary-light {
+    background-color: rgba(255, 107, 107, 0.1);
+}
+.bg-info-light {
+    background-color: rgba(13, 202, 240, 0.1);
+}
+
+.fw-extrabold {
+    font-weight: 800;
+}
+
+/* Upload Dropzone */
+.upload-dropzone {
+    border-color: #ff6b6b !important;
+    background-color: #fff9f9;
+    border-radius: 12px !important;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.upload-dropzone:hover, .upload-dropzone.dragover {
+    background-color: rgba(255, 107, 107, 0.08);
+    border-color: #ee5253 !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.preview-overlay {
+    z-index: 5;
+    background-color: #ffffff;
+}
+
+.preview-overlay img {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Scanning Status Animation */
+.scanning-status {
+    border-radius: 8px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.8;
+    }
+}
