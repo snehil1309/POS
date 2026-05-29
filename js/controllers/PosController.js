@@ -82,6 +82,19 @@ class PosController {
             });
         });
 
+        // Setup language toggle listener
+        const langBtn = document.getElementById('btn-lang-toggle');
+        if (langBtn) {
+            this.updateLanguageButtonUI();
+            langBtn.addEventListener('click', () => {
+                const newLang = this.model.currentLanguage === 'en' ? 'gu' : 'en';
+                this.model.currentLanguage = newLang;
+                localStorage.setItem('pos_language', newLang);
+                this.updateLanguageButtonUI();
+                this.refreshCurrentView();
+            });
+        }
+
         // Initial setup check session
         const savedOutlet = sessionStorage.getItem('pos_active_outlet');
         if (savedOutlet && this.model.setOutlet(savedOutlet)) {
@@ -113,11 +126,18 @@ class PosController {
     }
 
     showMenu() {
-        this.view.renderMenu(this.model.menu, this.model.getCartTotal(), this.model.currentOrder);
+        const translatedMenu = this.model.menu.map(item => ({
+            ...item,
+            name: this.model.translate(item.name),
+            category: this.model.translate(item.category)
+        }));
+        const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+        this.view.renderMenu(translatedMenu, this.model.getCartTotal(), translatedOrder);
     }
 
     showBilling() {
-        this.view.renderBilling(this.model.currentOrder, this.model.getCartTotal());
+        const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+        this.view.renderBilling(translatedOrder, this.model.getCartTotal());
     }
 
     showSalesReports(period = 'daily', startDate = null, endDate = null) {
@@ -140,7 +160,7 @@ class PosController {
     }
 
     showSavedOrders() {
-        const savedOrders = this.model.getSavedOrders();
+        const savedOrders = this.model.getSavedOrders().map(o => this.getTranslatedOrder(o));
         this.view.renderSavedOrders(savedOrders);
     }
 
@@ -155,7 +175,7 @@ class PosController {
     }
 
     showPlacedOrders() {
-        const orders = this.model.getOrders();
+        const orders = this.model.getOrders().map(o => this.getTranslatedOrder(o));
         // Sort by date descending (latest first)
         orders.sort((a, b) => new Date(b.date) - new Date(a.date));
         this.view.renderPlacedOrders(orders);
@@ -165,7 +185,7 @@ class PosController {
         const orders = this.model.getOrders();
         const order = orders.find(o => o.id === orderId);
         if (order) {
-            this.view.renderOrderDetails(order);
+            this.view.renderOrderDetails(this.getTranslatedOrder(order));
         }
     }
 
@@ -396,7 +416,13 @@ class PosController {
         if (menuCard) {
             const id = menuCard.dataset.menuId;
             this.model.addToCart(id);
-            this.view.updateMenuView(this.model.menu, this.model.getCartTotal(), this.model.currentOrder);
+            const translatedMenu = this.model.menu.map(item => ({
+                ...item,
+                name: this.model.translate(item.name),
+                category: this.model.translate(item.category)
+            }));
+            const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+            this.view.updateMenuView(translatedMenu, this.model.getCartTotal(), translatedOrder);
             return;
         }
 
@@ -406,7 +432,13 @@ class PosController {
             const id = qtyBtn.dataset.id;
             const action = qtyBtn.dataset.action;
             this.model.updateCartQty(id, action === 'increase' ? 1 : -1);
-            this.view.updateMenuView(this.model.menu, this.model.getCartTotal(), this.model.currentOrder);
+            const translatedMenu = this.model.menu.map(item => ({
+                ...item,
+                name: this.model.translate(item.name),
+                category: this.model.translate(item.category)
+            }));
+            const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+            this.view.updateMenuView(translatedMenu, this.model.getCartTotal(), translatedOrder);
             return;
         }
 
@@ -702,8 +734,10 @@ class PosController {
     }
 
     triggerFullOrderPrint(order) {
+        const translatedOrder = this.getTranslatedOrder(order);
         const printContainer = document.getElementById('print-section');
         const outletLogo = this.model.currentOutlet.logo;
+        order = translatedOrder;
 
         // 1. KOT Section HTML
         const kotHtml = `
@@ -917,5 +951,88 @@ SERVED HOT. SERVED QUICK.
         const encodedMsg = encodeURIComponent(billMsg);
         const waUrl = `https://wa.me/${phone}?text=${encodedMsg}`;
         window.open(waUrl, "_blank");
+    }
+
+    getTranslatedOrder(order) {
+        if (!order) return order;
+        return {
+            ...order,
+            items: order.items.map(cartItem => ({
+                ...cartItem,
+                item: {
+                    ...cartItem.item,
+                    name: this.model.translate(cartItem.item.name),
+                    category: this.model.translate(cartItem.item.category)
+                }
+            }))
+        };
+    }
+
+    updateLanguageButtonUI() {
+        const langBtn = document.getElementById('btn-lang-toggle');
+        if (langBtn) {
+            langBtn.dataset.lang = this.model.currentLanguage;
+            if (this.model.currentLanguage === 'gu') {
+                langBtn.innerHTML = '<i class="bi bi-translate"></i> ગુજરાતી';
+                langBtn.classList.remove('btn-outline-light');
+                langBtn.classList.add('btn-warning', 'text-dark');
+            } else {
+                langBtn.innerHTML = '<i class="bi bi-translate"></i> English';
+                langBtn.classList.remove('btn-warning', 'text-dark');
+                langBtn.classList.add('btn-outline-light');
+            }
+        }
+    }
+
+    refreshCurrentView() {
+        // If a menu grid is in the DOM, re-render menu
+        if (document.getElementById('menu-grid')) {
+            this.showMenu();
+            return;
+        }
+        // If billing is in the DOM, re-render billing
+        if (document.getElementById('cash-calculator-section') || document.getElementById('btn-place-order')) {
+            this.showBilling();
+            return;
+        }
+        // If saved orders list is visible, re-render them
+        if (document.querySelector('.saved-order-card') || document.querySelector('.whatsapp-notify-btn')) {
+            this.showSavedOrders();
+            return;
+        }
+        // If placed orders list is visible, re-render them
+        if (document.querySelector('.placed-order-card') || document.getElementById('btn-reprint-order')) {
+            if (document.getElementById('btn-back-placed-orders')) {
+                const reprintBtn = document.getElementById('btn-reprint-order');
+                const orderId = reprintBtn ? reprintBtn.dataset.orderId : null;
+                if (orderId) this.showOrderDetails(orderId);
+            } else {
+                this.showPlacedOrders();
+            }
+            return;
+        }
+        // If reports screen is active, re-render reports
+        if (document.querySelector('.nav-tabs') && document.querySelector('.report-card')) {
+            const activeTab = document.querySelector('.report-tab.active');
+            const period = activeTab ? activeTab.dataset.period : 'daily';
+            const startDate = document.getElementById('report-start-date') ? document.getElementById('report-start-date').value : null;
+            const endDate = document.getElementById('report-end-date') ? document.getElementById('report-end-date').value : null;
+            this.showSalesReports(period, startDate, endDate);
+            return;
+        }
+        if (document.getElementById('day-closing-form')) {
+            this.showDayClosing();
+            return;
+        }
+        if (document.getElementById('add-inventory-form')) {
+            this.showInventory();
+            return;
+        }
+        // Default fallback to home
+        if (this.model.currentOutlet) {
+            this.showHome();
+        } else {
+            this.showOutletSelection();
+        }
     }
 }
