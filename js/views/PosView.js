@@ -353,6 +353,20 @@ class PosView {
     }
 
     renderMenu(menu, cartTotal, currentOrder) {
+        const customItemCardHtml = `
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="card p-3 h-100 border-primary shadow-sm" style="border-style: dashed !important; border-width: 2px !important; background-color: rgba(13, 110, 253, 0.02); min-height: 140px;">
+                    <h5 class="card-title text-primary fw-bold mb-3"><i class="bi bi-plus-circle-fill"></i> Custom Combo/Item</h5>
+                    <div class="mt-auto">
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="custom-item-name" class="form-control" placeholder="Item or Combo Name" aria-label="Custom Item Name">
+                            <button class="btn btn-primary fw-bold" type="button" id="btn-add-custom-item">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
         let menuItemsHtml = menu.map(item => {
             const inCart = currentOrder.items.find(i => i.item.id === item.id);
             const selectedClass = inCart ? 'selected' : '';
@@ -401,6 +415,7 @@ class PosView {
                         </div>
                     </div>
                     <div class="row" id="menu-grid">
+                        ${customItemCardHtml}
                         ${menuItemsHtml}
                     </div>
                     <button class="btn btn-secondary mt-4" id="btn-back-home"><i class="bi bi-arrow-left"></i> Home</button>

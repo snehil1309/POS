@@ -7,6 +7,13 @@ class PosController {
         this.view.appContainer.addEventListener('click', this.handleAppClick.bind(this));
         this.view.appContainer.addEventListener('input', this.handleAppInput.bind(this));
         this.view.appContainer.addEventListener('change', this.handleAppChange.bind(this));
+        this.view.appContainer.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.id === 'custom-item-name') {
+                e.preventDefault();
+                const btn = document.getElementById('btn-add-custom-item');
+                if (btn) btn.click();
+            }
+        });
 
         // Setup top nav listeners
         document.getElementById('btn-change-outlet').addEventListener('click', () => {
@@ -409,6 +416,30 @@ class PosController {
             if (!e.target.closest('#customer-suggestions') && !e.target.closest('#cust-name')) {
                 suggestions.classList.add('d-none');
             }
+        }
+
+        // Add Custom Item/Combo
+        if (e.target.closest('#btn-add-custom-item')) {
+            const input = document.getElementById('custom-item-name');
+            if (input) {
+                const name = input.value.trim();
+                if (!name) {
+                    alert('Please enter a name for the custom item or combo.');
+                    return;
+                }
+                this.model.addCustomItemToCart(name);
+                input.value = ''; // clear input
+                
+                // Refresh the menu view to show the item in the cart
+                const translatedMenu = this.model.menu.map(item => ({
+                    ...item,
+                    name: this.model.translate(item.name),
+                    category: this.model.translate(item.category)
+                }));
+                const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+                this.view.updateMenuView(translatedMenu, this.model.getCartTotal(), translatedOrder);
+            }
+            return;
         }
 
         // Menu Item Selection
@@ -868,7 +899,21 @@ class PosController {
                 menuItemsHtml = `<div class="col-12 text-center text-muted mt-5">No items found</div>`;
             }
 
-            document.getElementById('menu-grid').innerHTML = menuItemsHtml;
+            const customItemCardHtml = `
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="card p-3 h-100 border-primary shadow-sm" style="border-style: dashed !important; border-width: 2px !important; background-color: rgba(13, 110, 253, 0.02); min-height: 140px;">
+                        <h5 class="card-title text-primary fw-bold mb-3"><i class="bi bi-plus-circle-fill"></i> Custom Combo/Item</h5>
+                        <div class="mt-auto">
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="custom-item-name" class="form-control" placeholder="Item or Combo Name" aria-label="Custom Item Name">
+                                <button class="btn btn-primary fw-bold" type="button" id="btn-add-custom-item">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('menu-grid').innerHTML = customItemCardHtml + menuItemsHtml;
         }
 
         // Customer Search Autocomplete

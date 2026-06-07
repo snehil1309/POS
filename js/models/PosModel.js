@@ -331,6 +331,24 @@ class PosModel {
         }
     }
 
+    addCustomItemToCart(name) {
+        if (!name || !name.trim()) return;
+        const cleanName = name.trim();
+        const customId = 'custom_' + Date.now();
+        const customItem = {
+            id: customId,
+            name: cleanName,
+            price: 0,
+            category: 'Custom'
+        };
+        this.currentOrder.items.push({
+            item: customItem,
+            qty: 1,
+            customPrice: 0,
+            total: 0
+        });
+    }
+
     updateCartQty(menuItemId, change) {
         const existingInfo = this.currentOrder.items.findIndex(i => i.item.id === menuItemId);
         if (existingInfo !== -1) {
