@@ -370,10 +370,17 @@ class PosView {
         let menuItemsHtml = menu.map(item => {
             const inCart = currentOrder.items.find(i => i.item.id === item.id);
             const selectedClass = inCart ? 'selected' : '';
+            const isPizza = item.id.startsWith('pz') && item.id !== 'pz9';
+            const recipeBtnHtml = isPizza ? `
+                <button class="btn btn-sm btn-outline-info btn-recipe-sop position-absolute" style="top: 10px; right: 10px; z-index: 10;" data-recipe-id="${item.id}" title="View SOP / Recipe">
+                    <i class="bi bi-book-half"></i> SOP
+                </button>
+            ` : '';
             return `
-                <div class="col-md-4 col-sm-6 mb-3">
+                <div class="col-md-4 col-sm-6 mb-3 position-relative">
                     <div class="card p-3 menu-item-card ${selectedClass}" data-menu-id="${item.id}">
-                        <h5 class="card-title">${item.name}</h5>
+                        ${recipeBtnHtml}
+                        <h5 class="card-title ${isPizza ? 'pe-5' : ''}">${item.name}</h5>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <span class="text-muted">${item.category}</span>
                             <span class="fw-bold text-success">₹${item.price}</span>
@@ -1058,5 +1065,110 @@ class PosView {
                 </div>
             </div>
         `;
+    }
+
+    showRecipeModal(recipe) {
+        let existingModal = document.getElementById('recipeModal');
+        if (existingModal) existingModal.remove();
+
+        const time = recipe.time;
+        const stepsHtml = recipe.steps.map((step, index) => `
+            <div class="form-check py-2 border-bottom">
+                <input class="form-check-input recipe-checkbox" type="checkbox" id="step-${index}">
+                <label class="form-check-label fs-5 ms-2" for="step-${index}" style="cursor: pointer;">
+                    <span class="badge bg-secondary me-2">Step ${index + 1}</span> ${step}
+                </label>
+            </div>
+        `).join('');
+
+        const ingredientsHtml = recipe.ingredients.map((ing, index) => `
+            <div class="col-6 mb-2">
+                <div class="form-check">
+                    <input class="form-check-input recipe-checkbox" type="checkbox" id="ing-${index}">
+                    <label class="form-check-label fs-6 ms-1" for="ing-${index}" style="cursor: pointer;">
+                        <i class="bi bi-circle text-primary me-1" style="font-size: 0.8rem;"></i> ${ing}
+                    </label>
+                </div>
+            </div>
+        `).join('');
+
+        const timeHtml = `
+            <div class="row g-2 text-center mb-4">
+                <div class="col-3">
+                    <div class="p-2 bg-light rounded border border-primary h-100">
+                        <i class="bi bi-clock-history text-primary fs-3 d-block mb-1"></i>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Preparation</small>
+                        <span class="fw-bold fs-5 text-primary">${time.prep}</span>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-2 bg-light rounded border border-warning h-100">
+                        <i class="bi bi-fire text-warning fs-3 d-block mb-1"></i>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Baking</small>
+                        <span class="fw-bold fs-5 text-warning">${time.baking}</span>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-2 bg-light rounded border border-success h-100">
+                        <i class="bi bi-display text-success fs-3 d-block mb-1"></i>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Plating</small>
+                        <span class="fw-bold fs-5 text-success">${time.plating}</span>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-2 bg-light rounded border border-info h-100">
+                        <i class="bi bi-truck text-info fs-3 d-block mb-1"></i>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Delivery</small>
+                        <span class="fw-bold fs-5 text-info">${time.delivery || '10 Min'}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const modalHtml = `
+            <div class="modal fade" id="recipeModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-dark text-white p-4">
+                            <h4 class="modal-title fw-bold"><i class="bi bi-journal-text text-warning me-2"></i> ${recipe.name} Preparation SOP</h4>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            ${timeHtml}
+                            
+                            <!-- Ingredients Checklist -->
+                            <div class="card mb-4 border-0 bg-light shadow-sm">
+                                <div class="card-header bg-secondary text-white fw-bold py-3">
+                                    <i class="bi bi-basket me-2"></i> Required Ingredients Checklist
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        ${ingredientsHtml}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Steps Checklist -->
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-primary text-white fw-bold py-3">
+                                    <i class="bi bi-list-check me-2"></i> Preparation Steps (Check off as you complete)
+                                </div>
+                                <div class="card-body p-3">
+                                    ${stepsHtml}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light p-3">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Close SOP</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modalEl = document.getElementById('recipeModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
     }
 }

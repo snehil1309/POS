@@ -442,6 +442,23 @@ class PosController {
             return;
         }
 
+        // Recipe SOP Button Click
+        const recipeBtn = e.target.closest('.btn-recipe-sop');
+        if (recipeBtn) {
+            e.stopPropagation();
+            e.preventDefault();
+            const id = recipeBtn.dataset.recipeId;
+            const recipe = this.model.getRecipe(id);
+            if (recipe) {
+                const translatedRecipe = {
+                    ...recipe,
+                    name: this.model.translate(recipe.name)
+                };
+                this.view.showRecipeModal(translatedRecipe);
+            }
+            return;
+        }
+
         // Menu Item Selection
         const menuCard = e.target.closest('.menu-item-card');
         if (menuCard) {

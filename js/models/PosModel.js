@@ -674,6 +674,10 @@ class PosModel {
         }
         return text;
     }
+
+    getRecipe(itemId) {
+        return PizzaRecipes[itemId] || null;
+    }
 }
 
 PosModel.prototype.translations = {
@@ -868,4 +872,175 @@ PosModel.prototype.translations = {
     'Ghee': 'ઘી',
     'Gud': 'ગોળ',
     'Makhan': 'માખણ'
+};
+
+const PizzaRecipes = {
+    'pz1': {
+        name: 'Margherita Pizza',
+        time: { prep: '5 Min', baking: '2 Min', plating: '1 Min', delivery: '10 Min' },
+        ingredients: [
+            'Pizza Bread',
+            'Pizza Sauce',
+            'Cheeze liquid',
+            'Mozzarella cheese',
+            'Thousand Island'
+        ],
+        steps: [
+            'Take a fresh Pizza Bread base.',
+            'Spread Pizza Sauce evenly across the base.',
+            'Drizzle Cheeze liquid over the sauce.',
+            'Generously top with Mozzarella cheese.',
+            'Add a finishing drizzle of Thousand Island sauce.',
+            'Bake in oven for 2 minutes.',
+            'Cut into slices, plate in 1 minute, and serve hot.'
+        ]
+    },
+    'pz2': {
+        name: 'Garden Fresh Pizza',
+        time: { prep: '5 Min', baking: '2 Min', plating: '1 Min', delivery: '10 Min' },
+        ingredients: [
+            'Pizza Base',
+            'Pizza Sauce',
+            'Pizza cheese',
+            'Mozzarella',
+            'Tomato, Onion, Capsicum',
+            'Mozzarella (little extra)'
+        ],
+        steps: [
+            'Take a fresh Pizza Base.',
+            'Spread Pizza Sauce evenly.',
+            'Add a layer of Pizza cheese and Mozzarella.',
+            'Arrange fresh Tomato, Onion, and Capsicum toppings uniformly.',
+            'Sprinkle a little extra Mozzarella on top.',
+            'Bake in oven for 2 minutes.',
+            'Slice, plate in 1 minute, and serve.'
+        ]
+    },
+    'pz3': {
+        name: 'Onion Topping Pizza',
+        time: { prep: '5 Min', baking: '2 Min', plating: '1 Min', delivery: '10 Min' },
+        ingredients: [
+            'Pizza Base',
+            'Pizza Sauce',
+            'Liquid cheese',
+            'Mozzarella',
+            '12 Pcs Onion (small)',
+            'Mozzarella (little extra)'
+        ],
+        steps: [
+            'Prepare the fresh Pizza Base.',
+            'Spread Pizza Sauce evenly.',
+            'Layer with liquid cheese and Mozzarella.',
+            'Arrange exactly 12 small pieces of Onion evenly across the pizza slices.',
+            'Top with a little extra Mozzarella.',
+            'Bake for 2 minutes.',
+            'Slice, plate, and serve.'
+        ]
+    },
+    'pz4': {
+        name: 'Capsicum Topping Pizza',
+        time: { prep: '5 Min', baking: '2 Min', plating: '1 Min', delivery: '10 Min' },
+        ingredients: [
+            'Pizza Base',
+            'Pizza Sauce',
+            'Liquid cheese',
+            'Mozzarella',
+            '12 Pcs Capsicum (small)',
+            'Mozzarella (little extra)'
+        ],
+        steps: [
+            'Prepare the fresh Pizza Base.',
+            'Spread Pizza Sauce evenly.',
+            'Layer with liquid cheese and Mozzarella.',
+            'Arrange exactly 12 small pieces of Capsicum evenly across the pizza.',
+            'Top with a little extra Mozzarella.',
+            'Bake for 2 minutes.',
+            'Slice, plate, and serve.'
+        ]
+    },
+    'pz5': {
+        name: 'Cherry Tomato Pizza',
+        time: { prep: '5 Min', baking: '2 Min', plating: '1 Min', delivery: '10 Min' },
+        ingredients: [
+            'Pizza Base',
+            'Pizza Sauce',
+            'Liquid cheese',
+            'Mozzarella',
+            'Cherry Tomato',
+            'Mozzarella (little extra)'
+        ],
+        steps: [
+            'Prepare the fresh Pizza Base.',
+            'Spread Pizza Sauce evenly.',
+            'Layer with liquid cheese and Mozzarella.',
+            'Arrange halved Cherry Tomatoes evenly across the pizza.',
+            'Top with a little extra Mozzarella.',
+            'Bake for 2 minutes.',
+            'Slice, plate, and serve.'
+        ]
+    },
+    'pz6': {
+        name: 'Tandoori Veggies Pizza',
+        time: { prep: '5 Min', baking: '1:45 Min', plating: '1 Min', ovenTemp: '200 °C' },
+        ingredients: [
+            'Pizza Base',
+            'Pizza Sauce',
+            'Pizza cheese',
+            'Mozzarella',
+            'Tomato, Onion, Capsicum, Jalapeno',
+            'Paneer (optional)',
+            'Tandoori Sauce (20 gms)'
+        ],
+        steps: [
+            'Take a fresh Pizza Base and apply Pizza Sauce.',
+            'Sprinkle Pizza cheese and Mozzarella.',
+            'Weigh/measure 20g of Tandoori Sauce.',
+            'Mix the veggies (Tomato, Onion, Capsicum, Jalapeno, and optional Paneer) thoroughly in the tandoori sauce.',
+            'Spread the tandoori-sauced veggies evenly over the cheese layer.',
+            'Set Oven Temperature to 200 °C.',
+            'Bake the pizza for exactly 1 minute and 45 seconds.',
+            'Slice according to the sample topping distribution diagram, plate, and serve.'
+        ]
+    },
+    'pz7': {
+        name: 'Italiano Pizza',
+        time: { prep: '5 Min', baking: '2 Min', plating: '1 Min' },
+        ingredients: [
+            'Pizza base',
+            'Pizza Sauce',
+            'Pizza cheese',
+            'Mozzarella',
+            'Jalapeno, Black Olives, Red Paprika',
+            'Baby corn',
+            'Mozzarella (little extra)'
+        ],
+        steps: [
+            'Prepare the fresh Pizza base and spread Pizza Sauce.',
+            'Add Pizza cheese and Mozzarella layer.',
+            'Distribute toppings: Jalapeno, Black Olives, Red Paprika, and Baby corn slices.',
+            'Add a small sprinkle of Mozzarella cheese on top.',
+            'Bake in the oven for 2 minutes.',
+            'Slice, plate, and serve.'
+        ]
+    },
+    'pz8': {
+        name: 'Veggie Classic Bite',
+        time: { prep: '8 Min', baking: '2 Min', plating: '1.5 Min' },
+        ingredients: [
+            'Pizza Base',
+            'Pizza Sauce',
+            'Pizza cheese',
+            'Mozzarella',
+            'Tomato, Capsicum, Onion',
+            'Red Paprika, Black Olives, Jalapeno'
+        ],
+        steps: [
+            'Prepare the fresh Pizza Base and apply Pizza Sauce.',
+            'Layer with Pizza cheese and Mozzarella.',
+            'Arrange fresh veggies (Tomato, Capsicum, Onion) evenly.',
+            'Arrange specialty toppings (Red Paprika, Black Olives, Jalapeno) evenly.',
+            'Bake in the oven for 2 minutes.',
+            'Slice, plate, and serve.'
+        ]
+    }
 };

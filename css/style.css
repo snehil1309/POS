@@ -281,3 +281,17 @@ body {
         page-break-after: always;
     }
 }
+
+/* Recipe SOP Styling */
+.recipe-checkbox:checked + label {
+    text-decoration: line-through;
+    color: #6c757d;
+    transition: all 0.2s ease-in-out;
+}
+.btn-recipe-sop {
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+.btn-recipe-sop:hover {
+    opacity: 1;
+}
