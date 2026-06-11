@@ -452,7 +452,9 @@ class PosController {
             if (recipe) {
                 const translatedRecipe = {
                     ...recipe,
-                    name: this.model.translate(recipe.name)
+                    name: this.model.translate(recipe.name),
+                    ingredients: recipe.ingredients.map(ing => this.model.translate(ing)),
+                    steps: recipe.steps.map(step => this.model.translate(step))
                 };
                 this.view.showRecipeModal(translatedRecipe);
             }
