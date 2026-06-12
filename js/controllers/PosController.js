@@ -473,6 +473,21 @@ class PosController {
             }));
             const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
             this.view.updateMenuView(translatedMenu, this.model.getCartTotal(), translatedOrder);
+
+            // Automatically open SOP/Recipe modal for pizzas
+            const isPizza = id.startsWith('pz') && id !== 'pz9';
+            if (isPizza) {
+                const recipe = this.model.getRecipe(id);
+                if (recipe) {
+                    const translatedRecipe = {
+                        ...recipe,
+                        name: this.model.translate(recipe.name),
+                        ingredients: recipe.ingredients.map(ing => this.model.translate(ing)),
+                        steps: recipe.steps.map(step => this.model.translate(step))
+                    };
+                    this.view.showRecipeModal(translatedRecipe);
+                }
+            }
             return;
         }
 
