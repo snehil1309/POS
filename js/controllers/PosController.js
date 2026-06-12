@@ -916,12 +916,19 @@ class PosController {
             let menuItemsHtml = filteredMenu.map(item => {
                 const inCart = this.model.currentOrder.items.find(i => i.item.id === item.id);
                 const selectedClass = inCart ? 'selected' : '';
+                const isPizza = item.id.startsWith('pz') && item.id !== 'pz9';
+                const recipeBtnHtml = isPizza ? `
+                    <button class="btn btn-sm btn-outline-info btn-recipe-sop position-absolute" style="top: 10px; right: 10px; z-index: 10;" data-recipe-id="${item.id}" title="View SOP / Recipe">
+                        <i class="bi bi-book-half"></i> SOP
+                    </button>
+                ` : '';
                 return `
-                    <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="col-md-4 col-sm-6 mb-3 position-relative">
                         <div class="card p-3 menu-item-card ${selectedClass}" data-menu-id="${item.id}">
-                            <h5 class="card-title">${item.name}</h5>
+                            ${recipeBtnHtml}
+                            <h5 class="card-title ${isPizza ? 'pe-5' : ''}">${this.model.translate(item.name)}</h5>
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="text-muted">${item.category}</span>
+                                <span class="text-muted">${this.model.translate(item.category)}</span>
                                 <span class="fw-bold text-success">₹${item.price}</span>
                             </div>
                         </div>
