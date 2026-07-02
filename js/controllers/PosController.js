@@ -81,6 +81,8 @@ class PosController {
                     localStorage.removeItem('pos_orders');
                     localStorage.removeItem('pos_closings');
                     localStorage.removeItem('pos_saved_orders');
+                    localStorage.removeItem('pos_custom_menu_quickies');
+                    localStorage.removeItem('pos_custom_menu_okr');
                     sessionStorage.removeItem('pos_active_outlet');
                     this.model.clearCart();
                     this.showOutletSelection();
@@ -1122,3 +1124,6 @@ SERVED HOT. SERVED QUICK.
         }
     }
 }
+Pressing key...Taking screenshot...Stopping...
+
+Stop Agent
