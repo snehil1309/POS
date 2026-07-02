@@ -1124,6 +1124,6 @@ SERVED HOT. SERVED QUICK.
         }
     }
 }
-Pressing key...Taking screenshot...Stopping...
+Pressing key...Stopping...
 
 Stop Agent
