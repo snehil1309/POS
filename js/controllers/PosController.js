@@ -6,6 +6,14 @@ class PosController {
         // Binding events to root app container (Event Delegation)
         this.view.appContainer.addEventListener('click', this.handleAppClick.bind(this));
         this.view.appContainer.addEventListener('input', this.handleAppInput.bind(this));
+        this.view.appContainer.addEventListener('change', this.handleAppChange.bind(this));
+        this.view.appContainer.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.id === 'custom-item-name') {
+                e.preventDefault();
+                const btn = document.getElementById('btn-add-custom-item');
+                if (btn) btn.click();
+            }
+        });
 
         // Setup top nav listeners
         document.getElementById('btn-change-outlet').addEventListener('click', () => {
@@ -13,16 +21,88 @@ class PosController {
             this.showOutletSelection();
         });
 
-        document.getElementById('btn-reset-data').addEventListener('click', () => {
-            if (confirm("Are you sure you want to delete all sales and order data? This action cannot be undone.")) {
-                localStorage.removeItem('pos_orders');
-                localStorage.removeItem('pos_closings');
-                sessionStorage.removeItem('pos_active_outlet');
-                this.model.clearCart();
-                this.showOutletSelection();
-                alert("All data has been cleared.");
+        // Setup password modal listener
+        document.getElementById('btn-submit-password').addEventListener('click', () => {
+            const pass = document.getElementById('admin-password').value;
+            if (pass === 'Effective1?') {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+                modal.hide();
+                document.getElementById('admin-password').value = '';
+                if (this.onPasswordSuccess) {
+                    this.onPasswordSuccess();
+                    this.onPasswordSuccess = null;
+                }
+            } else {
+                alert("Incorrect Password!");
+                document.getElementById('admin-password').value = '';
             }
         });
+
+        document.getElementById('admin-password').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('btn-submit-password').click();
+            }
+        });
+
+        document.getElementById('passwordModal').addEventListener('shown.bs.modal', () => {
+            document.getElementById('admin-password').focus();
+        });
+
+        document.getElementById('passwordModal').addEventListener('hidden.bs.modal', () => {
+            document.getElementById('admin-password').value = '';
+        });
+
+        // Setup expense modal listener
+        const btnSaveExpense = document.getElementById('btn-save-expense');
+        if (btnSaveExpense) {
+            btnSaveExpense.addEventListener('click', () => {
+                const amount = document.getElementById('expense-amount').value;
+                const desc = document.getElementById('expense-desc').value;
+                if (!amount || amount <= 0) {
+                    alert('Please enter a valid amount.');
+                    return;
+                }
+                this.model.addExpense(amount, desc);
+                
+                // Hide modal and clear fields
+                const modal = bootstrap.Modal.getInstance(document.getElementById('expenseModal'));
+                if (modal) modal.hide();
+                
+                document.getElementById('expense-amount').value = '';
+                document.getElementById('expense-desc').value = '';
+                
+                alert('Expense saved successfully!');
+            });
+        }
+
+        document.getElementById('btn-reset-data').addEventListener('click', () => {
+            this.promptPassword(() => {
+                if (confirm("Are you sure you want to delete all sales, order data, and saved orders? This action cannot be undone.")) {
+                    localStorage.removeItem('pos_orders');
+                    localStorage.removeItem('pos_closings');
+                    localStorage.removeItem('pos_saved_orders');
+                    localStorage.removeItem('pos_custom_menu_quickies');
+                    localStorage.removeItem('pos_custom_menu_okr');
+                    sessionStorage.removeItem('pos_active_outlet');
+                    this.model.clearCart();
+                    this.showOutletSelection();
+                    alert("All data has been cleared.");
+                }
+            });
+        });
+
+        // Setup language toggle listener
+        const langBtn = document.getElementById('btn-lang-toggle');
+        if (langBtn) {
+            this.updateLanguageButtonUI();
+            langBtn.addEventListener('click', () => {
+                const newLang = this.model.currentLanguage === 'en' ? 'gu' : 'en';
+                this.model.currentLanguage = newLang;
+                localStorage.setItem('pos_language', newLang);
+                this.updateLanguageButtonUI();
+                this.refreshCurrentView();
+            });
+        }
 
         // Initial setup check session
         const savedOutlet = sessionStorage.getItem('pos_active_outlet');
@@ -39,7 +119,7 @@ class PosController {
     }
 
     showHome() {
-        this.view.renderHome(this.model.currentOutlet.name);
+        this.view.renderHome(this.model.currentOutlet);
     }
 
     showOrderType() {
@@ -55,21 +135,67 @@ class PosController {
     }
 
     showMenu() {
-        this.view.renderMenu(this.model.menu, this.model.getCartTotal(), this.model.currentOrder);
+        const translatedMenu = this.model.menu.map(item => ({
+            ...item,
+            name: this.model.translate(item.name),
+            category: this.model.translate(item.category)
+        }));
+        const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+        this.view.renderMenu(translatedMenu, this.model.getCartTotal(), translatedOrder);
     }
 
     showBilling() {
-        this.view.renderBilling(this.model.currentOrder, this.model.getCartTotal());
+        const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+        this.view.renderBilling(translatedOrder, this.model.getCartTotal());
     }
 
-    showSalesReports() {
-        const stats = this.model.getDailyStats();
-        this.view.renderSalesReports(stats);
+    showSalesReports(period = 'daily', startDate = null, endDate = null) {
+        let stats;
+        if (period === 'custom' && (!startDate || !endDate)) {
+            stats = { grossSales: 0, totalOrders: 0, netSales: 0, cashSales: 0, upiSales: 0 };
+        } else {
+            stats = this.model.getSalesStats(period, startDate, endDate);
+        }
+        this.view.renderSalesReports(stats, period);
+
+        if (period === 'custom' && startDate && endDate) {
+            setTimeout(() => {
+                const s = document.getElementById('report-start-date');
+                const e = document.getElementById('report-end-date');
+                if (s) s.value = startDate;
+                if (e) e.value = endDate;
+            }, 0);
+        }
+    }
+
+    showSavedOrders() {
+        const savedOrders = this.model.getSavedOrders().map(o => this.getTranslatedOrder(o));
+        this.view.renderSavedOrders(savedOrders);
     }
 
     showDayClosing() {
         const stats = this.model.getDailyStats();
         this.view.renderDayClosing(stats);
+    }
+
+    showInventory() {
+        const inventory = this.model.getInventory();
+        this.view.renderInventory(inventory);
+    }
+
+    showPlacedOrders() {
+        const orders = this.model.getOrders().map(o => this.getTranslatedOrder(o));
+        // Sort by date descending (latest first)
+        orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+        this.view.renderPlacedOrders(orders);
+    }
+
+    showOrderDetails(orderId) {
+        const orders = this.model.getOrders();
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            this.view.renderOrderDetails(this.getTranslatedOrder(order));
+        }
     }
 
     handleAppClick(e) {
@@ -89,12 +215,93 @@ class PosController {
             this.showOrderType();
             return;
         }
+        if (e.target.closest('#btn-online-orders')) {
+            this.model.setOrderType('Take Away');
+            this.model.setOrderSource('Online WhatsApp');
+            this.showCustomerInfo();
+            return;
+        }
+        if (e.target.closest('#btn-saved-orders')) {
+            this.showSavedOrders();
+            return;
+        }
         if (e.target.closest('#btn-sales-reports')) {
-            this.showSalesReports();
+            if (this.model.currentOutlet.id === 'quickies') {
+                this.promptPassword(() => this.showSalesReports());
+            } else {
+                this.showSalesReports();
+            }
+            return;
+        }
+
+        if (e.target.closest('#btn-add-expense')) {
+            const modalEl = document.getElementById('expenseModal');
+            if (modalEl) {
+                const modalParams = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modalParams.show();
+            }
+            return;
+        }
+
+        const reportTab = e.target.closest('.report-tab');
+        if (reportTab) {
+            e.preventDefault();
+            const period = reportTab.dataset.period;
+            this.showSalesReports(period);
+            return;
+        }
+
+        if (e.target.closest('#custom-report-form button[type="submit"]')) {
+            e.preventDefault();
+            const startDate = document.getElementById('report-start-date').value;
+            const endDate = document.getElementById('report-end-date').value;
+            if (startDate && endDate) {
+                this.showSalesReports('custom', startDate, endDate);
+            } else {
+                alert('Please select both Start Date and End Date.');
+            }
             return;
         }
         if (e.target.closest('#btn-day-closing')) {
-            this.showDayClosing();
+            const inventory = this.model.getInventory();
+            this.view.showInventoryCheckModal(inventory);
+
+            const modalEl = document.getElementById('inventoryCheckModal');
+
+            const sendBtns = modalEl.querySelectorAll('.btn-send-store-wa');
+            sendBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const storeName = btn.dataset.store;
+                    const phone = btn.dataset.phone;
+
+                    // Save all quantities from modal
+                    document.querySelectorAll('.inv-modal-qty').forEach(input => {
+                        this.model.updateInventoryQty(input.dataset.invId, input.value);
+                    });
+
+                    // Filter items for this store
+                    const storeItems = this.model.getInventory().filter(i => (i.store || 'Others') === storeName);
+
+                    // Format WhatsApp Message
+                    const invText = storeItems.map(i => `${i.name}: ${i.qty || 0}`).join('\n');
+                    const msg = `*Inventory Update* - ${storeName} (${this.model.currentOutlet.name})\n-----------------\n${invText}`;
+                    window.open(`https://wa.me/${phone}/?text=${encodeURIComponent(msg)}`, "_blank");
+                });
+            });
+
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                // When modal is closed, proceed to day closing
+                this.showDayClosing();
+            }, { once: true });
+
+            return;
+        }
+        if (e.target.closest('#btn-inventory')) {
+            this.showInventory();
+            return;
+        }
+        if (e.target.closest('#btn-placed-orders') || e.target.closest('#btn-placed-orders-inner')) {
+            this.showPlacedOrders();
             return;
         }
 
@@ -118,6 +325,10 @@ class PosController {
         }
         if (e.target.closest('#btn-back-menu')) {
             this.showMenu();
+            return;
+        }
+        if (e.target.closest('#btn-back-placed-orders')) {
+            this.showPlacedOrders();
             return;
         }
 
@@ -165,12 +376,120 @@ class PosController {
             return;
         }
 
+        // Inventory Management
+        if (e.target.closest('#add-inventory-form button[type="submit"]')) {
+            e.preventDefault();
+            const nameInput = document.getElementById('new-inv-name');
+            const storeInput = document.getElementById('new-inv-store');
+            this.model.addInventoryItem(nameInput.value, storeInput.value);
+            this.showInventory();
+            return;
+        }
+
+        const deleteInvBtn = e.target.closest('.btn-delete-inv');
+        if (deleteInvBtn) {
+            if (confirm("Delete this inventory item?")) {
+                this.model.removeInventoryItem(deleteInvBtn.dataset.invId);
+                this.showInventory();
+            }
+            return;
+        }
+
+        if (e.target.closest('#btn-save-inventory')) {
+            document.querySelectorAll('.inv-qty-input').forEach(input => {
+                this.model.updateInventoryQty(input.dataset.invId, input.value);
+            });
+            alert("Inventory quantities saved!");
+            return;
+        }
+
+        // Customer Auto-suggestion selection
+        const custSuggestion = e.target.closest('.cust-suggestion-item');
+        if (custSuggestion) {
+            document.getElementById('cust-name').value = custSuggestion.dataset.name;
+            document.getElementById('cust-phone').value = custSuggestion.dataset.phone;
+            document.getElementById('customer-suggestions').classList.add('d-none');
+            return;
+        }
+
+        // Hide customer suggestions if clicking outside
+        const suggestions = document.getElementById('customer-suggestions');
+        if (suggestions && !suggestions.classList.contains('d-none')) {
+            if (!e.target.closest('#customer-suggestions') && !e.target.closest('#cust-name')) {
+                suggestions.classList.add('d-none');
+            }
+        }
+
+        // Add Custom Item/Combo
+        if (e.target.closest('#btn-add-custom-item')) {
+            const input = document.getElementById('custom-item-name');
+            if (input) {
+                const name = input.value.trim();
+                if (!name) {
+                    alert('Please enter a name for the custom item or combo.');
+                    return;
+                }
+                this.model.addCustomItemToCart(name);
+                input.value = ''; // clear input
+                
+                // Refresh the menu view to show the item in the cart
+                const translatedMenu = this.model.menu.map(item => ({
+                    ...item,
+                    name: this.model.translate(item.name),
+                    category: this.model.translate(item.category)
+                }));
+                const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+                this.view.updateMenuView(translatedMenu, this.model.getCartTotal(), translatedOrder);
+            }
+            return;
+        }
+
+        // Recipe SOP Button Click
+        const recipeBtn = e.target.closest('.btn-recipe-sop');
+        if (recipeBtn) {
+            e.stopPropagation();
+            e.preventDefault();
+            const id = recipeBtn.dataset.recipeId;
+            const recipe = this.model.getRecipe(id);
+            if (recipe) {
+                const translatedRecipe = {
+                    ...recipe,
+                    name: this.model.translate(recipe.name),
+                    ingredients: recipe.ingredients.map(ing => this.model.translate(ing)),
+                    steps: recipe.steps.map(step => this.model.translate(step))
+                };
+                this.view.showRecipeModal(translatedRecipe);
+            }
+            return;
+        }
+
         // Menu Item Selection
         const menuCard = e.target.closest('.menu-item-card');
         if (menuCard) {
             const id = menuCard.dataset.menuId;
             this.model.addToCart(id);
-            this.view.updateMenuView(this.model.menu, this.model.getCartTotal(), this.model.currentOrder);
+            const translatedMenu = this.model.menu.map(item => ({
+                ...item,
+                name: this.model.translate(item.name),
+                category: this.model.translate(item.category)
+            }));
+            const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+            this.view.updateMenuView(translatedMenu, this.model.getCartTotal(), translatedOrder);
+
+            // Automatically open SOP/Recipe modal for pizzas
+            const isPizza = id.startsWith('pz') && id !== 'pz9';
+            if (isPizza) {
+                const recipe = this.model.getRecipe(id);
+                if (recipe) {
+                    const translatedRecipe = {
+                        ...recipe,
+                        name: this.model.translate(recipe.name),
+                        ingredients: recipe.ingredients.map(ing => this.model.translate(ing)),
+                        steps: recipe.steps.map(step => this.model.translate(step))
+                    };
+                    this.view.showRecipeModal(translatedRecipe);
+                }
+            }
             return;
         }
 
@@ -180,12 +499,145 @@ class PosController {
             const id = qtyBtn.dataset.id;
             const action = qtyBtn.dataset.action;
             this.model.updateCartQty(id, action === 'increase' ? 1 : -1);
-            this.view.updateMenuView(this.model.menu, this.model.getCartTotal(), this.model.currentOrder);
+            const translatedMenu = this.model.menu.map(item => ({
+                ...item,
+                name: this.model.translate(item.name),
+                category: this.model.translate(item.category)
+            }));
+            const translatedOrder = this.getTranslatedOrder(this.model.currentOrder);
+            this.view.updateMenuView(translatedMenu, this.model.getCartTotal(), translatedOrder);
             return;
         }
 
         // Proceed to Billing
         if (e.target.closest('#btn-proceed-billing')) {
+            this.showBilling();
+            return;
+        }
+
+        // Save Order (from billing)
+        if (e.target.closest('#btn-save-order')) {
+            if (this.model.saveCurrentOrder()) {
+                alert("Order Saved Successfully!");
+                this.showHome();
+            } else {
+                alert("Failed to save order.");
+            }
+            return;
+        }
+
+        // Saved Order Actions
+        const loadBtn = e.target.closest('.load-saved-btn');
+        if (loadBtn) {
+            const id = loadBtn.dataset.orderId;
+            if (this.model.loadSavedOrder(id)) {
+                this.showMenu();
+            }
+            return;
+        }
+        const deleteBtn = e.target.closest('.delete-saved-btn');
+        if (deleteBtn) {
+            if (confirm("Are you sure you want to delete this saved order?")) {
+                const id = deleteBtn.dataset.orderId;
+                this.model.deleteSavedOrder(id);
+                this.showSavedOrders();
+            }
+            return;
+        }
+
+        // Placed Order Actions
+        const viewPlacedBtn = e.target.closest('.view-placed-btn');
+        if (viewPlacedBtn) {
+            const id = viewPlacedBtn.dataset.orderId;
+            this.showOrderDetails(id);
+            return;
+        }
+
+        if (e.target.closest('#btn-edit-placed-order')) {
+            const id = e.target.closest('#btn-edit-placed-order').dataset.orderId;
+            this.promptPassword(() => {
+                if (this.model.loadPlacedOrder(id)) {
+                    this.showMenu();
+                }
+            });
+            return;
+        }
+
+        if (e.target.closest('#btn-reprint-order')) {
+            const id = e.target.closest('#btn-reprint-order').dataset.orderId;
+            const orders = this.model.getOrders();
+            const order = orders.find(o => o.id === id);
+            if (order) {
+                this.triggerFullOrderPrint(order);
+                alert("Re-print job sent to printer.");
+            }
+            return;
+        }
+
+        // Render placed order details
+        if (e.target.closest('.view-placed-btn')) {
+            const id = e.target.closest('.view-placed-btn').dataset.orderId;
+            const orders = this.model.getOrders();
+            const order = orders.find(o => o.id === id);
+            if (order) {
+                this.view.renderOrderDetails(order);
+                window.scrollTo(0, 0);
+            }
+            return;
+        }
+
+        // WhatsApp Notification
+        const waBtn = e.target.closest('.whatsapp-notify-btn');
+        if (waBtn) {
+            let phone = waBtn.dataset.phone;
+            if (!phone) return;
+            phone = phone.replace(/\D/g, ''); // Remove non-digits
+            if (phone.length === 10) {
+                phone = "91" + phone;
+            }
+            const msg = "Hello%20your%20order%20is%20ready%20______QUICKIES%20SERVED%20HOT%20SERVED%20QUICK";
+            window.open(`https://wa.me/${phone}/?text=${msg}`, "_blank");
+            return;
+        }
+
+        // Send Bill to WhatsApp
+        const sendBillBtn = e.target.closest('.send-bill-btn');
+        if (sendBillBtn) {
+            if (sendBillBtn.disabled) return;
+            
+            const id = sendBillBtn.dataset.orderId;
+            const orders = this.model.getOrders();
+            const order = orders.find(o => o.id === id);
+            
+            if (order) {
+                if (!order.customerPhone) {
+                    alert("Customer phone number not available.");
+                    return;
+                }
+                
+                // Add loading state
+                const originalHtml = sendBillBtn.innerHTML;
+                sendBillBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+                sendBillBtn.disabled = true;
+                
+                setTimeout(() => {
+                    this.sendBillToWhatsApp(order);
+                    sendBillBtn.innerHTML = originalHtml;
+                    sendBillBtn.disabled = false;
+                }, 500);
+            }
+            return;
+        }
+
+        // Apply Discount
+        const discountBtn = e.target.closest('.discount-btn');
+        if (discountBtn) {
+            const percent = parseInt(discountBtn.dataset.discount, 10);
+            if (this.model.currentOrder.discount === percent) {
+                this.model.setDiscount(0); // Toggle off
+            } else {
+                this.model.setDiscount(percent);
+            }
             this.showBilling();
             return;
         }
@@ -197,16 +649,41 @@ class PosController {
             payBtn.classList.add('active', 'border-3');
             this.model.setPaymentMode(payBtn.dataset.mode);
             document.getElementById('btn-place-order').disabled = false;
+
+            // Toggle Cash Calculator
+            if (payBtn.dataset.mode === 'Cash') {
+                document.getElementById('cash-calculator-section').classList.remove('d-none');
+                this.cashReceived = 0;
+                this.updateCashCalculator();
+            } else {
+                document.getElementById('cash-calculator-section').classList.add('d-none');
+            }
+            return;
+        }
+
+        // Cash Denomination Buttons
+        const denomBtn = e.target.closest('.cash-denom-btn');
+        if (denomBtn) {
+            this.cashReceived = (this.cashReceived || 0) + parseInt(denomBtn.dataset.amt, 10);
+            this.updateCashCalculator();
+            return;
+        }
+
+        if (e.target.closest('.cash-clear-btn')) {
+            this.cashReceived = 0;
+            this.updateCashCalculator();
             return;
         }
 
         // Print Preview
         if (e.target.closest('#btn-preview-bill')) {
             const o = this.model.currentOrder;
-            const itemsText = o.items.map(i => `${i.item.name.padEnd(15).substring(0, 15)} ${String(i.qty).padStart(3)} ₹${String(i.item.price).padStart(5)}`).join('<br>');
+            const itemsText = o.items.map(i => {
+                const currentPrice = i.customPrice !== undefined ? i.customPrice : i.item.price;
+                return `${i.item.name.padEnd(15).substring(0, 15)} ${String(i.qty).padStart(3)} ₹${String(currentPrice).padStart(5)}`;
+            }).join('<br>');
 
-            const isQuickies = this.model.currentOutlet.name.toLowerCase() === 'quickies';
-            const logoHtml = isQuickies ? `<img src="logo.jpeg" alt="Quickies Logo" class="mb-2" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"><br>` : '';
+            const logoHtml = this.model.currentOutlet.logo ? `<img src="${this.model.currentOutlet.logo}" alt="${this.model.currentOutlet.name} Logo" class="mb-2" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"><br>` : '';
 
             const content = `
                 <div class="text-center mb-3">
@@ -221,7 +698,11 @@ class PosController {
                 <div>------------------------</div>
                 <div>${itemsText}</div>
                 <div>------------------------</div>
-                <div class="text-end fw-bold mt-2">TOTAL: ₹${this.model.getCartTotal()}</div>
+                ${o.discount ? `
+                <div class="text-end fw-bold mt-2">Sub Total: ₹${this.model.getCartTotal()}</div>
+                <div class="text-end fw-bold">Discount (${o.discount}%): -₹${Math.round(this.model.getCartTotal() * o.discount / 100)}</div>
+                ` : ''}
+                <div class="text-end fw-bold mt-2">TOTAL: ₹${this.model.getFinalTotal()}</div>
             `;
 
             document.getElementById('print-preview-content').innerHTML = content;
@@ -239,30 +720,24 @@ class PosController {
                 document.getElementById('print-order-id').innerText = 'Order ID: ' + record.id;
                 modal.show();
 
-                // Simulate Auto-Printing Sequence
+                // Reset Status UI
                 const updateStatus = (id, icon, text, textClass) => {
                     const el = document.getElementById(id);
                     el.innerHTML = `<i class="bi ${icon} ${textClass} me-2"></i> ${text}`;
                     el.className = `w-100 p-2 rounded bg-light border border-${textClass.replace('text-', '')}`;
                 };
 
-                // Reset Status UI
-                updateStatus('status-bill', 'bi-hourglass-split', 'Printing Bill...', 'text-warning');
-                updateStatus('status-kot', 'bi-hourglass-split', 'Printing KOT...', 'text-warning');
-                updateStatus('status-drawer', 'bi-hourglass-split', 'Opening Cash Drawer...', 'text-warning');
-                document.getElementById('btn-done-order').classList.add('d-none');
-                document.getElementById('print-status-text').innerText = 'Auto-Processing...';
-
-                // Sequence triggers
-                setTimeout(() => updateStatus('status-bill', 'bi-check-circle-fill', 'Bill Printed', 'text-success'), 800);
-                setTimeout(() => updateStatus('status-kot', 'bi-check-circle-fill', 'KOT Printed', 'text-success'), 1600);
+                // Consolidated Printing Sequence
                 setTimeout(() => {
+                    this.triggerFullOrderPrint(record);
+                    updateStatus('status-kot', 'bi-check-circle-fill', 'KOT Printed', 'text-success');
+                    updateStatus('status-bill', 'bi-check-circle-fill', 'Bill Printed', 'text-success');
                     updateStatus('status-drawer', 'bi-check-circle-fill', 'Cash Drawer Opened', 'text-success');
+
                     document.getElementById('print-status-text').innerText = 'Complete!';
                     document.getElementById('print-status-text').classList.add('text-success');
                     document.getElementById('btn-done-order').classList.remove('d-none');
-                }, 2400);
-
+                }, 500);
             }
             return;
         }
@@ -293,6 +768,144 @@ class PosController {
                 alert("Day Closed Successfully. System Locked for current Day.");
                 this.showHome();
             }
+            return;
+        }
+    }
+
+    promptPassword(callback) {
+        this.onPasswordSuccess = callback;
+        new bootstrap.Modal(document.getElementById('passwordModal')).show();
+    }
+
+    updateCashCalculator() {
+        const receivedEl = document.getElementById('cash-received-display');
+        const returnEl = document.getElementById('cash-return-display');
+        if (receivedEl && returnEl) {
+            receivedEl.value = '₹' + (this.cashReceived || 0);
+            const total = this.model.getFinalTotal();
+            const change = (this.cashReceived || 0) - total;
+
+            if (change > 0) {
+                returnEl.value = '₹' + change;
+                returnEl.classList.add('text-success');
+                returnEl.classList.remove('text-danger');
+            } else if (change < 0) {
+                returnEl.value = '-₹' + Math.abs(change) + ' (Short)';
+                returnEl.classList.add('text-danger');
+                returnEl.classList.remove('text-success');
+            } else {
+                returnEl.value = '₹0';
+                returnEl.classList.remove('text-danger', 'text-success');
+            }
+        }
+    }
+
+    triggerFullOrderPrint(order) {
+        const translatedOrder = this.getTranslatedOrder(order);
+        const printContainer = document.getElementById('print-section');
+        const outletLogo = this.model.currentOutlet.logo;
+        order = translatedOrder;
+
+        // 1. KOT Section HTML
+        const kotHtml = `
+            <div class="print-header">
+                <div class="print-title">KITCHEN ORDER TICKET (KOT)</div>
+                <div>${order.id}</div>
+                <div>${new Date(order.date).toLocaleString()}</div>
+                <div class="print-bold">Type: ${order.type} ${order.source ? '(' + order.source + ')' : ''}</div>
+            </div>
+            <div class="print-divider"></div>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80%" class="print-bold">ITEM</th>
+                        <th style="width: 20%" class="print-text-right print-bold">QTY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${order.items.map(i => `
+                        <tr>
+                            <td class="print-bold">${i.item.name}</td>
+                            <td class="print-text-right print-bold">${i.qty}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div class="print-divider"></div>
+            <div class="print-text-center">*** KOT END ***</div>
+        `;
+
+        // 2. Bill Section HTML
+        const billHtml = `
+            <div>
+                <div class="print-header">
+                    ${outletLogo ? `<img src="${outletLogo}" style="width: 40px; height: 40px; margin-bottom: 5px;"><br>` : ''}
+                    <div class="print-title">${this.model.currentOutlet.name.toUpperCase()}</div>
+                    <div>Order ID: ${order.id}</div>
+                    <div>Date: ${new Date(order.date).toLocaleString()}</div>
+                    <div class="print-bold">Type: ${order.type} ${order.source ? '(' + order.source + ')' : ''}</div>
+                    ${order.customerName ? `<div>Cust: ${order.customerName}</div>` : ''}
+                </div>
+                <div class="print-divider"></div>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50%" class="print-bold">ITEM</th>
+                            <th style="width: 15%" class="print-text-center print-bold">QTY</th>
+                            <th style="width: 35%" class="print-text-right print-bold">PRICE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${order.items.map(i => `
+                            <tr>
+                                <td class="print-bold">${i.item.name}</td>
+                                <td class="print-text-center print-bold">${i.qty}</td>
+                                <td class="print-text-right print-bold">₹${i.total}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div class="print-divider"></div>
+                ${order.discount ? `
+                <div class="print-text-right print-bold">Sub Total: ₹${order.items.reduce((sum, item) => sum + item.total, 0)}</div>
+                <div class="print-text-right print-bold">Discount (${order.discount}%): -₹${order.items.reduce((sum, item) => sum + item.total, 0) - order.total}</div>
+                ` : ''}
+                <div class="print-text-right print-bold" style="font-size: 1.2rem;">TOTAL: ₹${order.total}</div>
+                <div class="print-text-right print-bold">Paid via: ${order.paymentMode}</div>
+                <div class="print-divider"></div>
+                <div class="print-header" style="margin-top: 5mm">
+                    <strong class="print-bold">THANK YOU! VISIT AGAIN</strong><br>
+                    <small class="print-bold">Pallav: +91-9106804063</small>
+                </div>
+                <!-- Drawer Kick Character -->
+                <div style="font-size: 1px; color: white;">\u0007</div>
+            </div>
+        `;
+
+        // Command 1: Print KOT
+        printContainer.innerHTML = kotHtml;
+        window.print();
+
+        // Command 2: Print Bill (with slight delay to separate printer buffers)
+        setTimeout(() => {
+            printContainer.innerHTML = billHtml;
+            window.print();
+
+            // Clear after both jobs are sent
+            setTimeout(() => {
+                printContainer.innerHTML = '';
+            }, 1000);
+        }, 500);
+    }
+
+    handleAppChange(e) {
+        if (e.target.classList.contains('custom-price-input')) {
+            const id = e.target.dataset.menuId;
+            const newPrice = parseFloat(e.target.value);
+            if (!isNaN(newPrice) && newPrice >= 0) {
+                this.model.updateItemPrice(id, newPrice);
+                this.showBilling();
+            }
         }
     }
 
@@ -305,12 +918,19 @@ class PosController {
             let menuItemsHtml = filteredMenu.map(item => {
                 const inCart = this.model.currentOrder.items.find(i => i.item.id === item.id);
                 const selectedClass = inCart ? 'selected' : '';
+                const isPizza = item.id.startsWith('pz') && item.id !== 'pz9';
+                const recipeBtnHtml = isPizza ? `
+                    <button class="btn btn-sm btn-outline-info btn-recipe-sop position-absolute" style="top: 10px; right: 10px; z-index: 10;" data-recipe-id="${item.id}" title="View SOP / Recipe">
+                        <i class="bi bi-book-half"></i> SOP
+                    </button>
+                ` : '';
                 return `
-                    <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="col-md-4 col-sm-6 mb-3 position-relative">
                         <div class="card p-3 menu-item-card ${selectedClass}" data-menu-id="${item.id}">
-                            <h5 class="card-title">${item.name}</h5>
+                            ${recipeBtnHtml}
+                            <h5 class="card-title ${isPizza ? 'pe-5' : ''}">${this.model.translate(item.name)}</h5>
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="text-muted">${item.category}</span>
+                                <span class="text-muted">${this.model.translate(item.category)}</span>
                                 <span class="fw-bold text-success">₹${item.price}</span>
                             </div>
                         </div>
@@ -322,7 +942,185 @@ class PosController {
                 menuItemsHtml = `<div class="col-12 text-center text-muted mt-5">No items found</div>`;
             }
 
-            document.getElementById('menu-grid').innerHTML = menuItemsHtml;
+            const customItemCardHtml = `
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="card p-3 h-100 border-primary shadow-sm" style="border-style: dashed !important; border-width: 2px !important; background-color: rgba(13, 110, 253, 0.02); min-height: 140px;">
+                        <h5 class="card-title text-primary fw-bold mb-3"><i class="bi bi-plus-circle-fill"></i> Custom Combo/Item</h5>
+                        <div class="mt-auto">
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="custom-item-name" class="form-control" placeholder="Item or Combo Name" aria-label="Custom Item Name">
+                                <button class="btn btn-primary fw-bold" type="button" id="btn-add-custom-item">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('menu-grid').innerHTML = customItemCardHtml + menuItemsHtml;
+        }
+
+        // Customer Search Autocomplete
+        if (e.target.id === 'cust-name') {
+            const term = e.target.value.toLowerCase().trim();
+            const container = document.getElementById('customer-suggestions');
+            if (!container) return;
+
+            if (term.length < 2) {
+                container.classList.add('d-none');
+                return;
+            }
+
+            const customers = this.model.getUniqueCustomers();
+            const matches = customers.filter(c => c.name && c.name.toLowerCase().includes(term)).slice(0, 5);
+
+            if (matches.length > 0) {
+                container.innerHTML = matches.map(c => `
+                    <button type="button" class="list-group-item list-group-item-action cust-suggestion-item py-2" data-name="${c.name || ''}" data-phone="${c.phone || ''}">
+                        <strong>${c.name}</strong> ${c.phone ? `<span class="text-muted small ms-2">${c.phone}</span>` : ''}
+                    </button>
+                `).join('');
+                container.classList.remove('d-none');
+            } else {
+                container.classList.add('d-none');
+            }
+        }
+    }
+
+    generateBill(order) {
+        const subtotal = order.items.reduce((sum, item) => sum + item.total, 0);
+        const tax = 0; // Tax (if applicable)
+        const discount = order.discount ? (subtotal - order.total) : 0;
+        const dateStr = new Date(order.date).toLocaleString();
+        
+        let itemsStr = '';
+        order.items.forEach((item, index) => {
+            const currentPrice = item.customPrice !== undefined ? item.customPrice : item.item.price;
+            itemsStr += `${index + 1}. ${item.item.name} x ${item.qty} = ₹${item.total}\n`;
+        });
+
+        const bill = `## QUICKIES CAFE
+
+Customer Name: ${order.customerName || 'Walk-in'}
+Mobile: ${order.customerPhone || 'N/A'}
+Order ID: ${order.id}
+Date & Time: ${dateStr}
+
+## Items Ordered:
+
+${itemsStr}
+---
+
+Subtotal: ₹${subtotal}
+${discount ? `Discount: -₹${discount}\n` : ''}Tax (if applicable): ₹${tax}
+Total Amount: ₹${order.total}
+----------------------------
+
+QUICKIES...
+SERVED HOT. SERVED QUICK.
+
+## Thank you for your order.`;
+
+        return bill;
+    }
+
+    sendBillToWhatsApp(order) {
+        if (!order.customerPhone) {
+            alert("Customer phone number not available.");
+            return;
+        }
+
+        const billMsg = this.generateBill(order);
+        let phone = order.customerPhone;
+        phone = phone.replace(/\D/g, ''); // Remove non-digits
+        if (phone.length === 10) {
+            phone = "91" + phone;
+        }
+        
+        const encodedMsg = encodeURIComponent(billMsg);
+        const waUrl = `https://wa.me/${phone}?text=${encodedMsg}`;
+        window.open(waUrl, "_blank");
+    }
+
+    getTranslatedOrder(order) {
+        if (!order) return order;
+        return {
+            ...order,
+            items: order.items.map(cartItem => ({
+                ...cartItem,
+                item: {
+                    ...cartItem.item,
+                    name: this.model.translate(cartItem.item.name),
+                    category: this.model.translate(cartItem.item.category)
+                }
+            }))
+        };
+    }
+
+    updateLanguageButtonUI() {
+        const langBtn = document.getElementById('btn-lang-toggle');
+        if (langBtn) {
+            langBtn.dataset.lang = this.model.currentLanguage;
+            if (this.model.currentLanguage === 'gu') {
+                langBtn.innerHTML = '<i class="bi bi-translate"></i> ગુજરાતી';
+                langBtn.classList.remove('btn-outline-light');
+                langBtn.classList.add('btn-warning', 'text-dark');
+            } else {
+                langBtn.innerHTML = '<i class="bi bi-translate"></i> English';
+                langBtn.classList.remove('btn-warning', 'text-dark');
+                langBtn.classList.add('btn-outline-light');
+            }
+        }
+    }
+
+    refreshCurrentView() {
+        // If a menu grid is in the DOM, re-render menu
+        if (document.getElementById('menu-grid')) {
+            this.showMenu();
+            return;
+        }
+        // If billing is in the DOM, re-render billing
+        if (document.getElementById('cash-calculator-section') || document.getElementById('btn-place-order')) {
+            this.showBilling();
+            return;
+        }
+        // If saved orders list is visible, re-render them
+        if (document.querySelector('.saved-order-card') || document.querySelector('.whatsapp-notify-btn')) {
+            this.showSavedOrders();
+            return;
+        }
+        // If placed orders list is visible, re-render them
+        if (document.querySelector('.placed-order-card') || document.getElementById('btn-reprint-order')) {
+            if (document.getElementById('btn-back-placed-orders')) {
+                const reprintBtn = document.getElementById('btn-reprint-order');
+                const orderId = reprintBtn ? reprintBtn.dataset.orderId : null;
+                if (orderId) this.showOrderDetails(orderId);
+            } else {
+                this.showPlacedOrders();
+            }
+            return;
+        }
+        // If reports screen is active, re-render reports
+        if (document.querySelector('.nav-tabs') && document.querySelector('.report-card')) {
+            const activeTab = document.querySelector('.report-tab.active');
+            const period = activeTab ? activeTab.dataset.period : 'daily';
+            const startDate = document.getElementById('report-start-date') ? document.getElementById('report-start-date').value : null;
+            const endDate = document.getElementById('report-end-date') ? document.getElementById('report-end-date').value : null;
+            this.showSalesReports(period, startDate, endDate);
+            return;
+        }
+        if (document.getElementById('day-closing-form')) {
+            this.showDayClosing();
+            return;
+        }
+        if (document.getElementById('add-inventory-form')) {
+            this.showInventory();
+            return;
+        }
+        // Default fallback to home
+        if (this.model.currentOutlet) {
+            this.showHome();
+        } else {
+            this.showOutletSelection();
         }
     }
 }
