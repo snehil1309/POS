@@ -282,7 +282,9 @@ class PosModel {
         const outlet = this.outlets.find(o => o.id === outletId);
         if (outlet && outlet.active) {
             this.currentOutlet = outlet;
-            this.menu = this.menus[outletId] || [];
+            const baseMenu = this.menus[outletId] || [];
+            const customMenuItems = JSON.parse(localStorage.getItem(`pos_custom_menu_${outletId}`) || '[]');
+            this.menu = [...baseMenu, ...customMenuItems];
             return true;
         }
         return false;
@@ -334,13 +336,36 @@ class PosModel {
     addCustomItemToCart(name) {
         if (!name || !name.trim()) return;
         const cleanName = name.trim();
+        
+        // Normalize name: lowercase, trim, and remove all non-alphanumeric characters to handle casing/spacing/formatting
+        const normalize = str => str.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizedNew = normalize(cleanName);
+        
+        const exists = this.menu.some(item => normalize(item.name) === normalizedNew);
+        if (exists) {
+            alert("The same item already exists.");
+            return;
+        }
+
         const customId = 'custom_' + Date.now();
         const customItem = {
             id: customId,
             name: cleanName,
             price: 0,
-            category: 'Custom'
+            category: 'New Additions'
         };
+        
+        // Add to active menu list
+        this.menu.push(customItem);
+        
+        // Persist to localStorage for future orders
+        if (this.currentOutlet) {
+            const outletId = this.currentOutlet.id;
+            const customMenuItems = JSON.parse(localStorage.getItem(`pos_custom_menu_${outletId}`) || '[]');
+            customMenuItems.push(customItem);
+            localStorage.setItem(`pos_custom_menu_${outletId}`, JSON.stringify(customMenuItems));
+        }
+
         this.currentOrder.items.push({
             item: customItem,
             qty: 1,
@@ -368,6 +393,23 @@ class PosModel {
         if (existingInfo) {
             existingInfo.customPrice = newPrice;
             existingInfo.total = existingInfo.qty * newPrice;
+        }
+
+        // Sync the updated price to the menu list so future selections in this session have it
+        const menuItem = this.menu.find(m => m.id === menuItemId);
+        if (menuItem) {
+            menuItem.price = newPrice;
+        }
+
+        // If it is a custom item, persist the updated price to localStorage for future orders
+        if (this.currentOutlet) {
+            const outletId = this.currentOutlet.id;
+            const customMenuItems = JSON.parse(localStorage.getItem(`pos_custom_menu_${outletId}`) || '[]');
+            const customItem = customMenuItems.find(i => i.id === menuItemId);
+            if (customItem) {
+                customItem.price = newPrice;
+                localStorage.setItem(`pos_custom_menu_${outletId}`, JSON.stringify(customMenuItems));
+            }
         }
     }
 
@@ -705,6 +747,7 @@ PosModel.prototype.translations = {
     'South Indian': 'સાઉથ ઇન્ડિયન',
     'Veg. Selections': 'શાકાહારી વાનગીઓ',
     'Gujarati / Kathiyawadi': 'ગુજરાતી / કાઠિયાવાડી',
+    'New Additions': 'નવા ઉમેરાયેલા',
 
     // Quickies Menu Items
     'Fresh Lime Soda': 'ફ્રેશ લાઈમ સોડા',
@@ -1106,3 +1149,6 @@ const PizzaRecipes = {
         ]
     }
 };
+Pressing key...Clicking...Stopping...
+
+Stop Agent
